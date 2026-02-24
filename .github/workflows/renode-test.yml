@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/zephyrproject-rtos/ci:v0.27.4
@@ -42,22 +42,40 @@ jobs:
           python3 tools/gen_config_bin.py config/node_chassis.json config/chassis_config.bin
           python3 tools/gen_config_bin.py config/node_lights.json config/lights_config.bin
 
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ceell-build
+          path: |
+            ceell-app/build/zephyr/zephyr.elf
+            ceell-app/config/*.bin
+            ceell-app/simulation/
+            ceell-app/tests/
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ceell-build
+          path: ceell-app
+
       - name: Run Boot Test
         uses: antmicro/renode-test-action@v4
         with:
-          renode-version: latest
           tests-to-run: ceell-app/tests/robot/test_boot.robot
 
       - name: Run Discovery Test
         uses: antmicro/renode-test-action@v4
         with:
-          renode-version: latest
           tests-to-run: ceell-app/tests/robot/test_discovery.robot
 
       - name: Run Services Test
         uses: antmicro/renode-test-action@v4
         with:
-          renode-version: latest
           tests-to-run: ceell-app/tests/robot/test_services.robot
 
       - name: Upload test results
