@@ -48,11 +48,17 @@ jobs:
           renode-version: latest
           tests-to-run: ceell-app/tests/robot/test_discovery.robot
 
+      - name: Run Services Test
+        uses: antmicro/renode-test-action@v4
+        with:
+          renode-version: latest
+          tests-to-run: ceell-app/tests/robot/test_services.robot
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: renode-test-results
           path: |
-            report.html
-            log.html
+            **/report.html
+            **/log.html
