@@ -10,22 +10,22 @@ emulation CreateSwitch "switch"
 # --- Node 1: Body Controller ---
 mach create "body"
 machine LoadPlatformDescription @simulation/renode/mr_canhubk3_ceell.repl
-sysbus.gmac0 MAC "02:00:00:00:01:10"
-connector Connect sysbus.gmac0 switch
+sysbus.emac0 MAC "02:00:00:00:01:10"
+connector Connect sysbus.emac0 switch
 showAnalyzer sysbus.lpuart2
 
 # --- Node 2: Chassis Controller ---
 mach create "chassis"
 machine LoadPlatformDescription @simulation/renode/mr_canhubk3_ceell.repl
-sysbus.gmac0 MAC "02:00:00:00:01:11"
-connector Connect sysbus.gmac0 switch
+sysbus.emac0 MAC "02:00:00:00:01:11"
+connector Connect sysbus.emac0 switch
 showAnalyzer sysbus.lpuart2
 
 # --- Node 3: Lights Controller ---
 mach create "lights"
 machine LoadPlatformDescription @simulation/renode/mr_canhubk3_ceell.repl
-sysbus.gmac0 MAC "02:00:00:00:01:12"
-connector Connect sysbus.gmac0 switch
+sysbus.emac0 MAC "02:00:00:00:01:12"
+connector Connect sysbus.emac0 switch
 showAnalyzer sysbus.lpuart2
 
 macro reset

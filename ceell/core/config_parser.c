@@ -107,6 +107,18 @@ int ceell_config_load(struct ceell_config *cfg)
 
 	ret = flash_area_open(CONFIG_PARTITION_ID, &fa);
 	if (ret < 0) {
+		/*
+		 * Flash device not available (e.g. Renode without QSPI model).
+		 * Try memory-mapped fallback: config binary loaded at 0x68000000
+		 * via Renode's "sysbus LoadBinary" command.
+		 */
+		const uint8_t *mapped = (const uint8_t *)0x68000000;
+
+		if (!flash_is_empty(mapped, CONFIG_READ_SIZE)) {
+			printk("CEELL: flash unavailable, using memory-mapped config\n");
+			memcpy(read_buf, mapped, CONFIG_READ_SIZE);
+			goto parse_json;
+		}
 		printk("CEELL: flash open failed (%d), using defaults\n", ret);
 		load_defaults(cfg);
 		return 0;
@@ -127,6 +139,7 @@ int ceell_config_load(struct ceell_config *cfg)
 		return 0;
 	}
 
+parse_json:
 	/* Null-terminate the JSON buffer */
 	read_buf[CONFIG_READ_SIZE - 1] = '\0';
 

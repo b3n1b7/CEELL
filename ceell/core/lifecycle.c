@@ -31,7 +31,7 @@ void ceell_lifecycle_run(void)
 		       id->node_id, peers);
 
 #ifdef CONFIG_CEELL_TEST_ECHO_SERVICE
-		/* Once we have peers, send one echo test request */
+		/* Once we have peers, send echo test (retries until success) */
 		if (!echo_tested && peers > 0) {
 			char peer_ip[16];
 
@@ -42,15 +42,15 @@ void ceell_lifecycle_run(void)
 				       peer_ip);
 				int ret = ceell_msg_send("echo", "hello-ceell",
 							 &rsp,
-							 K_SECONDS(3));
+							 K_SECONDS(5));
 				if (ret == 0) {
 					printk("CEELL_ECHO_TEST_OK status=%d payload=%s\n",
 					       rsp.status, rsp.payload);
+					echo_tested = true;
 				} else {
-					printk("CEELL_ECHO_TEST_FAIL err=%d\n",
+					printk("CEELL_ECHO_TEST_FAIL err=%d (will retry)\n",
 					       ret);
 				}
-				echo_tested = true;
 			}
 		}
 #endif

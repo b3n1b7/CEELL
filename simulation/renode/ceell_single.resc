@@ -8,7 +8,7 @@ mach create "body"
 machine LoadPlatformDescription @simulation/renode/mr_canhubk3_ceell.repl
 
 # Set unique MAC address
-sysbus.gmac0 MAC "02:00:00:00:01:10"
+sysbus.emac0 MAC "02:00:00:00:01:10"
 
 showAnalyzer sysbus.lpuart2
 

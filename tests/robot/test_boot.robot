@@ -10,7 +10,7 @@ CEELL Boots And Loads Flash Config
     Execute Command    path add @${CURDIR}/../..
     Execute Command    mach create "body"
     Execute Command    machine LoadPlatformDescription @simulation/renode/mr_canhubk3_ceell.repl
-    Execute Command    sysbus.gmac0 MAC "02:00:00:00:01:10"
+    Execute Command    sysbus.emac0 MAC "02:00:00:00:01:10"
     Execute Command    sysbus LoadELF @build/zephyr/zephyr.elf
     Execute Command    sysbus LoadBinary @config/body_config.bin 0x68000000
     Execute Command    cpu0 VectorTableOffset 0x400400

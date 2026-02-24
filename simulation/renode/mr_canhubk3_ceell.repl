@@ -2,6 +2,14 @@
 // Uses the S32K388 platform (compatible with S32K344)
 using "platforms/cpus/nxp-s32k388.repl"
 
+// S32K344 uses EMAC at 0x40480000, not GMAC at 0x40484000.
+// The Zephyr driver for mr_canhubk3 targets this address.
+emac0: Network.S32K3XX_EMAC @ sysbus 0x40480000
+    systemClockFrequency: 50000000
+    IRQ -> nvic0@105
+    Channel0TX -> nvic0@106
+    Channel0RX -> nvic0@107
+
 // Writable memory for clock peripherals (replacing read-as-zero Tags)
 // Pre-populated in .resc files with oscillator stable / PLL locked values.
 
