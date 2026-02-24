@@ -1,0 +1,24 @@
+// CEELL platform definition for MR-CANHUBK3
+// Uses the S32K388 platform (compatible with S32K344)
+using "platforms/cpus/nxp-s32k388.repl"
+
+// Writable memory for clock peripherals (replacing read-as-zero Tags)
+// Pre-populated in .resc files with oscillator stable / PLL locked values.
+
+firc: Memory.MappedMemory @ sysbus 0x402D0000
+    size: 0x400
+
+sirc: Memory.MappedMemory @ sysbus 0x402C8000
+    size: 0x400
+
+fxosc: Memory.MappedMemory @ sysbus 0x402D4000
+    size: 0x400
+
+sxosc: Memory.MappedMemory @ sysbus 0x402CC000
+    size: 0x400
+
+pll: Memory.MappedMemory @ sysbus 0x402E0000
+    size: 0x400
+
+pll_aux: Memory.MappedMemory @ sysbus 0x402E4000
+    size: 0x400

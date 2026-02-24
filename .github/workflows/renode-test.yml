@@ -1,0 +1,58 @@
+name: CEELL Renode Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/zephyrproject-rtos/ci:v0.27.4
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ceell-app
+
+      - name: Initialize West workspace
+        working-directory: ceell-app
+        run: |
+          west init -l .
+          west update
+
+      - name: Build single binary
+        working-directory: ceell-app
+        run: |
+          west build -b mr_canhubk3 -d build
+
+      - name: Generate flash config binaries
+        working-directory: ceell-app
+        run: |
+          python3 tools/gen_config_bin.py config/node_body.json config/body_config.bin
+          python3 tools/gen_config_bin.py config/node_chassis.json config/chassis_config.bin
+          python3 tools/gen_config_bin.py config/node_lights.json config/lights_config.bin
+
+      - name: Run Boot Test
+        uses: antmicro/renode-test-action@v4
+        with:
+          renode-version: latest
+          tests-to-run: ceell-app/tests/robot/test_boot.robot
+
+      - name: Run Discovery Test
+        uses: antmicro/renode-test-action@v4
+        with:
+          renode-version: latest
+          tests-to-run: ceell-app/tests/robot/test_discovery.robot
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: renode-test-results
+          path: |
+            report.html
+            log.html

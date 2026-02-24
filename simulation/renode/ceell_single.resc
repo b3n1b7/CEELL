@@ -1,0 +1,75 @@
+# CEELL Single Node Boot Test (Phase 2 — services + messaging)
+# Usage: renode ceell_single.resc
+# Then type: start
+
+using sysbus
+
+mach create "body"
+machine LoadPlatformDescription @simulation/renode/mr_canhubk3_ceell.repl
+
+# Set unique MAC address
+sysbus.gmac0 MAC "02:00:00:00:01:10"
+
+showAnalyzer sysbus.lpuart2
+
+macro reset
+"""
+    sysbus LoadELF @build/zephyr/zephyr.elf
+    sysbus LoadBinary @config/body_config.bin 0x68000000
+
+    # S32K IVT header: VTOR must point past header to actual vector table
+    cpu0 VectorTableOffset 0x400400
+
+    # Pre-populate clock status registers so NXP HAL init completes.
+    sysbus WriteDoubleWord 0x402D0004 0x00000001
+    sysbus WriteDoubleWord 0x402D4004 0x80000000
+    sysbus WriteDoubleWord 0x402CC004 0x80000000
+    sysbus WriteDoubleWord 0x402E0004 0x00000004
+
+    # Fix CGM MUX CSS: replace flipflop peripherals with constant value
+    sysbus Unregister sysbus.mc_cgm_mux_0_css
+    sysbus Unregister sysbus.mc_cgm_mux_1_css
+    sysbus Unregister sysbus.mc_cgm_mux_2_css
+    sysbus Unregister sysbus.mc_cgm_mux_3_css
+    sysbus Unregister sysbus.mc_cgm_mux_4_css
+    sysbus Unregister sysbus.mc_cgm_mux_5_css
+    sysbus Unregister sysbus.mc_cgm_mux_6_css
+    sysbus Unregister sysbus.mc_cgm_mux_7_css
+    sysbus Unregister sysbus.mc_cgm_mux_8_css
+    sysbus Unregister sysbus.mc_cgm_mux_9_css
+    sysbus Unregister sysbus.mc_cgm_mux_10_css
+    sysbus Unregister sysbus.mc_cgm_mux_11_css
+    sysbus Unregister sysbus.mc_cgm_mux_12_css
+    sysbus Unregister sysbus.mc_cgm_mux_13_css
+    sysbus Unregister sysbus.mc_cgm_mux_14_css
+    sysbus Unregister sysbus.mc_cgm_mux_15_css
+    sysbus Unregister sysbus.mc_cgm_mux_16_css
+    sysbus Unregister sysbus.mc_cgm_mux_17_css
+    sysbus Unregister sysbus.mc_cgm_mux_18_css
+    sysbus Unregister sysbus.mc_cgm_mux_19_css
+
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D8304 0x4 true "mc_cgm_mux_0_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D8344 0x4 true "mc_cgm_mux_1_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D8384 0x4 true "mc_cgm_mux_2_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D83C4 0x4 true "mc_cgm_mux_3_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D8404 0x4 true "mc_cgm_mux_4_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D8444 0x4 true "mc_cgm_mux_5_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D8484 0x4 true "mc_cgm_mux_6_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D84C4 0x4 true "mc_cgm_mux_7_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D8504 0x4 true "mc_cgm_mux_8_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D8544 0x4 true "mc_cgm_mux_9_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D8584 0x4 true "mc_cgm_mux_10_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D85C4 0x4 true "mc_cgm_mux_11_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D8604 0x4 true "mc_cgm_mux_12_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D8644 0x4 true "mc_cgm_mux_13_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D8684 0x4 true "mc_cgm_mux_14_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D86C4 0x4 true "mc_cgm_mux_15_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D8704 0x4 true "mc_cgm_mux_16_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D8744 0x4 true "mc_cgm_mux_17_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D8784 0x4 true "mc_cgm_mux_18_css"
+    machine PyDevFromString "request.Value = 0x00020004" 0x402D87C4 0x4 true "mc_cgm_mux_19_css"
+
+    # Fix QuadSPI DLL-A Slave Lock status (bit 14+15 = locked)
+    machine PyDevFromString "request.Value = 0x0000C000" 0x404CC12C 0x4 true "qspi_dllsr"
+"""
+runMacro $reset

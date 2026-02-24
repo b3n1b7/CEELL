@@ -1,0 +1,67 @@
+mainmenu "CEELL Middleware Configuration"
+
+menu "CEELL Services"
+
+config CEELL_MAX_SERVICES
+	int "Maximum number of services per node"
+	default 4
+
+config CEELL_MSG_PORT
+	int "UDP port for service messaging"
+	default 5556
+
+config CEELL_PEER_TIMEOUT_MS
+	int "Peer expiry timeout in milliseconds"
+	default 5000
+
+config CEELL_TEST_ECHO_SERVICE
+	bool "Enable built-in echo test service"
+	default n
+
+endmenu
+
+menu "CEELL Discovery"
+
+config CEELL_DISCOVERY_PORT
+	int "UDP port for discovery"
+	default 5555
+
+config CEELL_DISCOVERY_GROUP
+	string "Multicast group address"
+	default "224.0.1.100"
+
+config CEELL_DISCOVERY_INTERVAL_MS
+	int "Announcement interval in milliseconds"
+	default 1000
+
+config CEELL_DISCOVERY_MAX_PEERS
+	int "Maximum number of tracked peers"
+	default 8
+
+endmenu
+
+menu "CEELL Node Identity"
+
+config CEELL_NODE_ID_DEFAULT
+	int "Default node ID (used if flash config is empty)"
+	default 0
+
+config CEELL_NODE_ROLE_DEFAULT
+	string "Default node role"
+	default "unknown"
+
+config CEELL_NODE_NAME_DEFAULT
+	string "Default node name"
+	default "ceell-unprovisioned"
+
+config CEELL_NODE_IP_DEFAULT
+	string "Default IP address"
+	default "192.168.1.100"
+
+config CEELL_NODE_NETMASK_DEFAULT
+	string "Default netmask"
+	default "255.255.255.0"
+
+endmenu
+
+source "Kconfig.zephyr"

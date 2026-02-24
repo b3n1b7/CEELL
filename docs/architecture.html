@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEELL — Architecture Overview</title>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --surface2: #1a2234;
+    --border: #1e2d44;
+    --accent: #3b82f6;
+    --accent2: #8b5cf6;
+    --accent3: #10b981;
+    --accent4: #f59e0b;
+    --accent5: #ef4444;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #64748b;
+    --done: #10b981;
+    --wip: #f59e0b;
+    --todo: #475569;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .hero {
+    position: relative;
+    padding: 80px 40px 60px;
+    text-align: center;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse at 50% 50%, rgba(59,130,246,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+  }
+  .hero .subtitle {
+    font-size: 1.25rem;
+    color: var(--text2);
+    max-width: 720px;
+    margin: 0 auto 16px;
+  }
+  .hero .plain {
+    font-size: 1rem;
+    color: var(--text3);
+    max-width: 640px;
+    margin: 0 auto 30px;
+    line-height: 1.7;
+  }
+  .hero .badge-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* Sections */
+  section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 40px;
+  }
+  .section-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+  }
+  .section-desc {
+    font-size: 0.95rem;
+    color: var(--text2);
+    max-width: 720px;
+    margin-bottom: 32px;
+    line-height: 1.7;
+  }
+
+  /* Stats */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+  }
+  .stat-card .value {
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-card .label {
+    font-size: 0.8rem;
+    color: var(--text3);
+    font-weight: 500;
+  }
+
+  /* === FULL STACK === */
+  .fullstack-container {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .fullstack-container svg { width: 100%; height: auto; }
+
+  /* === PORTABILITY === */
+  .port-container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .port-container svg { width: 100%; height: auto; }
+
+  /* === ROADMAP === */
+  .roadmap {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .phase-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .phase-card:hover { border-color: #334155; }
+  .phase-header {
+    padding: 24px 28px 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .phase-badge {
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .phase-badge.done { background: #10b98120; color: #10b981; border: 1px solid #10b98140; }
+  .phase-badge.wip  { background: #f59e0b20; color: #f59e0b; border: 1px solid #f59e0b40; }
+  .phase-badge.todo { background: #47556920; color: #64748b; border: 1px solid #47556940; }
+  .phase-header .title { font-weight: 700; font-size: 1.1rem; }
+  .phase-header .when {
+    margin-left: auto;
+    font-size: 0.8rem;
+    color: var(--text3);
+  }
+  .phase-body { padding: 20px 28px 24px; }
+  .phase-desc {
+    font-size: 0.9rem;
+    color: var(--text2);
+    margin-bottom: 16px;
+    line-height: 1.7;
+  }
+  .phase-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+  }
+  .phase-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-radius: 8px;
+    font-size: 0.85rem;
+  }
+  .phase-item .check {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+  }
+  .check.done { background: #10b98125; color: #10b981; border: 2px solid #10b981; }
+  .check.wip  { background: #f59e0b25; color: #f59e0b; border: 2px solid #f59e0b; }
+  .check.todo { background: #47556925; color: #475569; border: 2px solid #475569; }
+
+  /* === TOPOLOGY === */
+  .topology-container {
+    position: relative;
+    width: 100%; max-width: 900px;
+    margin: 0 auto;
+    aspect-ratio: 16/9;
+  }
+  .topology-container svg { width: 100%; height: 100%; }
+
+  /* === MODULE STACK === */
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .stack-col {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .stack-col-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 700; font-size: 1rem;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .stack-col-header .icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 1rem;
+  }
+  .stack-layer {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    transition: background 0.2s;
+  }
+  .stack-layer:last-child { border-bottom: none; }
+  .stack-layer:hover { background: var(--surface2); }
+  .stack-layer .name { font-weight: 600; font-size: 0.9rem; }
+  .stack-layer .detail {
+    font-size: 0.78rem; color: var(--text3);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+
+  /* === BOOT SEQUENCE === */
+  .sequence { position: relative; max-width: 700px; margin: 0 auto; }
+  .seq-line {
+    position: absolute; left: 24px; top: 0; bottom: 0; width: 2px;
+    background: linear-gradient(to bottom, var(--accent), var(--accent2), var(--accent3));
+    border-radius: 1px;
+  }
+  .seq-step { position: relative; padding: 0 0 32px 64px; }
+  .seq-step:last-child { padding-bottom: 0; }
+  .seq-dot {
+    position: absolute; left: 16px; top: 4px; width: 18px; height: 18px;
+    border-radius: 50%; border: 3px solid; background: var(--bg);
+  }
+  .seq-step .time {
+    font-size: 0.72rem; font-weight: 600; color: var(--text3);
+    font-family: 'SF Mono', 'Fira Code', monospace; margin-bottom: 2px;
+  }
+  .seq-step .label { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+  .seq-step .desc { font-size: 0.85rem; color: var(--text2); }
+
+  /* === PROTOCOL === */
+  .protocol-viz { position: relative; width: 100%; max-width: 860px; margin: 0 auto; }
+  .protocol-viz svg { width: 100%; height: auto; }
+
+  /* === FILE MAP === */
+  .file-tree {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .file-group {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+  .file-group-title {
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .file-group-title .ct {
+    font-size: 0.7rem; padding: 2px 8px; border-radius: 10px;
+    background: var(--surface2); color: var(--text3); font-weight: 600;
+  }
+  .file-entry {
+    font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.78rem;
+    padding: 5px 0; color: var(--text2);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .file-entry .ficon { font-size: 0.7rem; opacity: 0.5; }
+
+  /* === CONFIG CARDS === */
+  .config-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .config-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .config-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .config-card-head {
+    padding: 20px 24px; display: flex; align-items: center; gap: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .config-card-head .node-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; flex-shrink: 0;
+  }
+  .config-card-head .info .name { font-weight: 700; font-size: 1rem; }
+  .config-card-head .info .role { font-size: 0.78rem; color: var(--text3); }
+  .config-card-body { padding: 16px 24px 20px; }
+  .config-row {
+    display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.82rem;
+  }
+  .config-row .key { color: var(--text3); }
+  .config-row .val {
+    font-family: 'SF Mono', 'Fira Code', monospace; font-weight: 600; font-size: 0.78rem;
+  }
+
+  /* === CI === */
+  .ci-container { max-width: 700px; margin: 0 auto; }
+  .ci-container svg { width: 100%; height: auto; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 2.2rem; }
+    .stack-grid, .config-cards { grid-template-columns: 1fr; }
+    section { padding: 24px 20px; }
+    .phase-items { grid-template-columns: 1fr; }
+  }
+
+  /* Animations */
+  @keyframes dash-flow { to { stroke-dashoffset: -20; } }
+  .flow-line { animation: dash-flow 1s linear infinite; }
+</style>
+</head>
+<body>
+
+<!-- ==================== HERO ==================== -->
+<div class="hero">
+  <h1>CEELL</h1>
+  <p class="subtitle">Configurable ECU Execution Layer for 48V Vehicle Domain Controllers</p>
+  <p class="plain">
+    Think of CEELL as a "smart brain" that lives inside each electronic controller in a vehicle.
+    Every controller runs the same software — it reads a config file to know its job
+    (body, chassis, lights...) and then automatically finds the other controllers on the network.
+    Write once, deploy everywhere — even on different chip vendors.
+  </p>
+  <div class="badge-row">
+    <span class="badge"><span class="dot" style="background:#3b82f6"></span>Zephyr RTOS v4.1.0</span>
+    <span class="badge"><span class="dot" style="background:#10b981"></span>NXP MR-CANHUBK3</span>
+    <span class="badge"><span class="dot" style="background:#f59e0b"></span>Phase 1 — Code Written</span>
+    <span class="badge"><span class="dot" style="background:#8b5cf6"></span>Zero Dynamic Memory</span>
+  </div>
+</div>
+
+<!-- ==================== STATS ==================== -->
+<section>
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="value" style="color:var(--accent)">30</div>
+      <div class="label">Source Files</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" style="color:var(--accent3)">602</div>
+      <div class="label">Lines of C</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" style="color:var(--accent4)">3</div>
+      <div class="label">Virtual Nodes</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" style="color:var(--accent2)">0</div>
+      <div class="label">Dynamic Allocations</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" style="color:var(--accent5)">0</div>
+      <div class="label">Physical Boards (yet)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== THE FULL STACK ==================== -->
+<section>
+  <div class="section-label">The Big Picture</div>
+  <div class="section-title">From Silicon to Software — What Lives Where</div>
+  <div class="section-desc">
+    A vehicle ECU is like a layered cake. At the bottom: the physical chip and wires.
+    At the top: the application logic. We are building the <strong>middle layers</strong> —
+    the middleware that makes ECUs configurable, discoverable, and vendor-independent.
+    Everything below our code already exists (Zephyr, chip vendors). Everything above
+    is what vehicle engineers will configure.
+  </div>
+  <div class="fullstack-container">
+    <svg viewBox="0 0 860 620" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="ourGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#3b82f6"/>
+          <stop offset="100%" stop-color="#8b5cf6"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Layer 6: Vehicle Function (top) -->
+      <rect x="80" y="20" width="700" height="70" rx="14" fill="#1a2234" stroke="#64748b" stroke-width="1" stroke-dasharray="4 3"/>
+      <text x="430" y="48" text-anchor="middle" fill="#64748b" font-size="11" font-weight="600" letter-spacing="0.08em">FUTURE</text>
+      <text x="430" y="68" text-anchor="middle" fill="#94a3b8" font-size="16" font-weight="700">Vehicle Functions</text>
+      <text x="740" y="64" text-anchor="end" fill="#475569" font-size="11">e.g. "turn on headlights when dark"</text>
+
+      <!-- Arrow -->
+      <text x="430" y="108" text-anchor="middle" fill="#334155" font-size="14">&#9660;</text>
+
+      <!-- Layer 5: CEELL Application — OUR CODE -->
+      <rect x="80" y="118" width="700" height="80" rx="14" fill="#3b82f610" stroke="url(#ourGrad)" stroke-width="2.5"/>
+      <rect x="82" y="120" width="696" height="76" rx="12" fill="#0a0e17" opacity="0.5"/>
+      <text x="120" y="148" fill="#3b82f6" font-size="10" font-weight="700" letter-spacing="0.1em">WE BUILD THIS</text>
+      <text x="120" y="172" fill="#e2e8f0" font-size="18" font-weight="800">CEELL Middleware</text>
+      <text x="120" y="190" fill="#94a3b8" font-size="12">Config loading, node identity, network discovery, health monitoring</text>
+      <rect x="640" y="138" width="120" height="44" rx="8" fill="#3b82f615" stroke="#3b82f640" stroke-width="1"/>
+      <text x="700" y="157" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="600">Phase 1</text>
+      <text x="700" y="173" text-anchor="middle" fill="#3b82f6" font-size="10">CODE WRITTEN</text>
+
+      <!-- Arrow -->
+      <text x="430" y="216" text-anchor="middle" fill="#334155" font-size="14">&#9660;</text>
+
+      <!-- Layer 4: Zephyr RTOS -->
+      <rect x="80" y="226" width="700" height="70" rx="14" fill="#111827" stroke="#8b5cf6" stroke-width="1.5"/>
+      <text x="120" y="252" fill="#8b5cf6" font-size="10" font-weight="700" letter-spacing="0.1em">OPEN SOURCE — ALREADY EXISTS</text>
+      <text x="120" y="274" fill="#e2e8f0" font-size="16" font-weight="700">Zephyr RTOS v4.1.0</text>
+      <text x="740" y="268" text-anchor="end" fill="#64748b" font-size="11">Threads, networking, flash drivers, JSON</text>
+
+      <!-- Arrow -->
+      <text x="430" y="314" text-anchor="middle" fill="#334155" font-size="14">&#9660;</text>
+
+      <!-- Layer 3: HAL (vendor-specific) -->
+      <rect x="80" y="324" width="700" height="70" rx="14" fill="#111827" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="120" y="350" fill="#f59e0b" font-size="10" font-weight="700" letter-spacing="0.1em">VENDOR-PROVIDED — SWAPPABLE</text>
+      <text x="120" y="372" fill="#e2e8f0" font-size="16" font-weight="700">Hardware Abstraction Layer (HAL)</text>
+      <text x="740" y="366" text-anchor="end" fill="#64748b" font-size="11">NXP HAL today, ST HAL tomorrow</text>
+
+      <!-- Arrow -->
+      <text x="430" y="412" text-anchor="middle" fill="#334155" font-size="14">&#9660;</text>
+
+      <!-- Layer 2: Silicon -->
+      <rect x="80" y="422" width="700" height="70" rx="14" fill="#111827" stroke="#10b981" stroke-width="1.5"/>
+      <text x="120" y="448" fill="#10b981" font-size="10" font-weight="700" letter-spacing="0.1em">PHYSICAL CHIP</text>
+      <text x="120" y="470" fill="#e2e8f0" font-size="16" font-weight="700">MCU — The Processor</text>
+      <text x="740" y="464" text-anchor="end" fill="#64748b" font-size="11">ARM Cortex-M7 core, Ethernet MAC, Flash</text>
+
+      <!-- Arrow -->
+      <text x="430" y="510" text-anchor="middle" fill="#334155" font-size="14">&#9660;</text>
+
+      <!-- Layer 1: Board + Network -->
+      <rect x="80" y="520" width="700" height="80" rx="14" fill="#111827" stroke="#ef4444" stroke-width="1.5"/>
+      <text x="120" y="546" fill="#ef4444" font-size="10" font-weight="700" letter-spacing="0.1em">PHYSICAL WORLD</text>
+      <text x="120" y="568" fill="#e2e8f0" font-size="16" font-weight="700">Board + Automotive Ethernet Wiring</text>
+      <text x="120" y="588" fill="#94a3b8" font-size="12">100BASE-T1 single twisted pair (IEEE 802.3bw) — the standard used in production cars</text>
+
+      <!-- Side annotations -->
+      <rect x="0" y="118" width="60" height="80" rx="0" fill="#3b82f608"/>
+      <text x="30" y="163" text-anchor="middle" fill="#3b82f6" font-size="28" font-weight="800" transform="rotate(-90,30,163)">US</text>
+
+      <rect x="0" y="226" width="60" height="370" rx="0" fill="#47556908"/>
+      <text x="30" y="410" text-anchor="middle" fill="#475569" font-size="16" font-weight="700" transform="rotate(-90,30,410)">ALREADY EXISTS</text>
+
+      <!-- Currently virtual label -->
+      <rect x="300" y="444" width="260" height="26" rx="13" fill="#f59e0b15" stroke="#f59e0b50" stroke-width="1"/>
+      <text x="430" y="462" text-anchor="middle" fill="#f59e0b" font-size="11" font-weight="600">Currently simulated in Renode (virtual)</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ==================== PORTABILITY / CHIP INDEPENDENCE ==================== -->
+<section>
+  <div class="section-label">Why This Matters</div>
+  <div class="section-title">One Codebase, Many Chips</div>
+  <div class="section-desc">
+    Because we build on Zephyr (which supports 600+ boards), our CEELL code doesn't care
+    what chip is underneath. Switching from NXP to ST means changing one line in the build
+    command — not rewriting the application. This is the same strategy used by Tesla (moving
+    from Intel to AMD) and Apple (Intel to ARM): keep the software portable, swap the hardware.
+  </div>
+  <div class="port-container">
+    <svg viewBox="0 0 900 440" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="portGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#3b82f6"/>
+          <stop offset="100%" stop-color="#8b5cf6"/>
+        </linearGradient>
+      </defs>
+
+      <!-- CEELL (top — same across all) -->
+      <rect x="100" y="20" width="700" height="60" rx="12" fill="#3b82f610" stroke="url(#portGrad)" stroke-width="2"/>
+      <text x="450" y="45" text-anchor="middle" fill="#3b82f6" font-size="11" font-weight="700" letter-spacing="0.1em">CEELL MIDDLEWARE — IDENTICAL CODE</text>
+      <text x="450" y="66" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="600">Config + Discovery + Lifecycle — write once</text>
+
+      <!-- Zephyr (same across all) -->
+      <rect x="100" y="100" width="700" height="45" rx="10" fill="#111827" stroke="#8b5cf6" stroke-width="1.5"/>
+      <text x="450" y="128" text-anchor="middle" fill="#8b5cf6" font-size="13" font-weight="700">Zephyr RTOS — same across all chips</text>
+
+      <!-- Arrows down to 3 columns -->
+      <line x1="230" y1="145" x2="230" y2="185" stroke="#47556960" stroke-width="1.5"/>
+      <line x1="450" y1="145" x2="450" y2="185" stroke="#47556960" stroke-width="1.5"/>
+      <line x1="670" y1="145" x2="670" y2="185" stroke="#47556960" stroke-width="1.5"/>
+
+      <!-- Column 1: NXP S32K344 (current) -->
+      <rect x="100" y="185" width="260" height="235" rx="14" fill="#111827" stroke="#10b981" stroke-width="2"/>
+      <rect x="102" y="187" width="256" height="40" rx="12" fill="#10b98110"/>
+      <text x="230" y="200" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700" letter-spacing="0.08em">CURRENT TARGET</text>
+      <text x="230" y="218" text-anchor="middle" fill="#10b981" font-size="14" font-weight="800">NXP S32K344</text>
+
+      <text x="120" y="250" fill="#94a3b8" font-size="11" font-weight="600">Board</text>
+      <text x="340" y="250" text-anchor="end" fill="#e2e8f0" font-size="11">MR-CANHUBK3</text>
+      <line x1="120" y1="260" x2="340" y2="260" stroke="#1e2d44" stroke-width="0.5"/>
+      <text x="120" y="278" fill="#94a3b8" font-size="11" font-weight="600">Core</text>
+      <text x="340" y="278" text-anchor="end" fill="#e2e8f0" font-size="11">ARM Cortex-M7</text>
+      <line x1="120" y1="288" x2="340" y2="288" stroke="#1e2d44" stroke-width="0.5"/>
+      <text x="120" y="306" fill="#94a3b8" font-size="11" font-weight="600">Ethernet</text>
+      <text x="340" y="306" text-anchor="end" fill="#e2e8f0" font-size="11">GMAC + TJA1103</text>
+      <line x1="120" y1="316" x2="340" y2="316" stroke="#1e2d44" stroke-width="0.5"/>
+      <text x="120" y="334" fill="#94a3b8" font-size="11" font-weight="600">Auto Ethernet</text>
+      <text x="340" y="334" text-anchor="end" fill="#10b981" font-size="11" font-weight="600">100BASE-T1</text>
+      <line x1="120" y1="344" x2="340" y2="344" stroke="#1e2d44" stroke-width="0.5"/>
+      <text x="120" y="362" fill="#94a3b8" font-size="11" font-weight="600">HAL</text>
+      <text x="340" y="362" text-anchor="end" fill="#f59e0b" font-size="11">hal_nxp</text>
+      <line x1="120" y1="372" x2="340" y2="372" stroke="#1e2d44" stroke-width="0.5"/>
+      <text x="120" y="390" fill="#94a3b8" font-size="11" font-weight="600">Status</text>
+      <text x="340" y="390" text-anchor="end" fill="#10b981" font-size="11" font-weight="700">Simulated in Renode</text>
+
+      <!-- Column 2: NXP S32K5 (next) -->
+      <rect x="380" y="185" width="260" height="235" rx="14" fill="#111827" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="6 3"/>
+      <rect x="382" y="187" width="256" height="40" rx="12" fill="#3b82f610"/>
+      <text x="510" y="200" text-anchor="middle" fill="#3b82f6" font-size="9" font-weight="700" letter-spacing="0.08em">NEXT GENERATION</text>
+      <text x="510" y="218" text-anchor="middle" fill="#3b82f6" font-size="14" font-weight="800">NXP S32K5xx</text>
+
+      <text x="400" y="250" fill="#94a3b8" font-size="11" font-weight="600">Board</text>
+      <text x="620" y="250" text-anchor="end" fill="#e2e8f0" font-size="11">TBD</text>
+      <line x1="400" y1="260" x2="620" y2="260" stroke="#1e2d44" stroke-width="0.5"/>
+      <text x="400" y="278" fill="#94a3b8" font-size="11" font-weight="600">Core</text>
+      <text x="620" y="278" text-anchor="end" fill="#e2e8f0" font-size="11">ARM Cortex-M7+M33</text>
+      <line x1="400" y1="288" x2="620" y2="288" stroke="#1e2d44" stroke-width="0.5"/>
+      <text x="400" y="306" fill="#94a3b8" font-size="11" font-weight="600">Ethernet</text>
+      <text x="620" y="306" text-anchor="end" fill="#e2e8f0" font-size="11">ENET + 10BASE-T1S</text>
+      <line x1="400" y1="316" x2="620" y2="316" stroke="#1e2d44" stroke-width="0.5"/>
+      <text x="400" y="334" fill="#94a3b8" font-size="11" font-weight="600">Auto Ethernet</text>
+      <text x="620" y="334" text-anchor="end" fill="#3b82f6" font-size="11" font-weight="600">100BASE-T1 / T1S</text>
+      <line x1="400" y1="344" x2="620" y2="344" stroke="#1e2d44" stroke-width="0.5"/>
+      <text x="400" y="362" fill="#94a3b8" font-size="11" font-weight="600">HAL</text>
+      <text x="620" y="362" text-anchor="end" fill="#f59e0b" font-size="11">hal_nxp (same!)</text>
+      <line x1="400" y1="372" x2="620" y2="372" stroke="#1e2d44" stroke-width="0.5"/>
+      <text x="400" y="390" fill="#94a3b8" font-size="11" font-weight="600">Status</text>
+      <text x="620" y="390" text-anchor="end" fill="#64748b" font-size="11">Planned</text>
+
+      <!-- Column 3: ST SR6 P3E (investigating) -->
+      <rect x="660" y="185" width="230" height="235" rx="14" fill="#111827" stroke="#ec4899" stroke-width="1.5" stroke-dasharray="6 3"/>
+      <rect x="662" y="187" width="226" height="40" rx="12" fill="#ec489910"/>
+      <text x="775" y="200" text-anchor="middle" fill="#ec4899" font-size="9" font-weight="700" letter-spacing="0.08em">INVESTIGATING</text>
+      <text x="775" y="218" text-anchor="middle" fill="#ec4899" font-size="14" font-weight="800">ST SR6 P3E</text>
+
+      <text x="680" y="250" fill="#94a3b8" font-size="11" font-weight="600">Board</text>
+      <text x="870" y="250" text-anchor="end" fill="#e2e8f0" font-size="11">ST eval boards</text>
+      <line x1="680" y1="260" x2="870" y2="260" stroke="#1e2d44" stroke-width="0.5"/>
+      <text x="680" y="278" fill="#94a3b8" font-size="11" font-weight="600">Core</text>
+      <text x="870" y="278" text-anchor="end" fill="#e2e8f0" font-size="11">ARM Cortex-R/M</text>
+      <line x1="680" y1="288" x2="870" y2="288" stroke="#1e2d44" stroke-width="0.5"/>
+      <text x="680" y="306" fill="#94a3b8" font-size="11" font-weight="600">Ethernet</text>
+      <text x="870" y="306" text-anchor="end" fill="#e2e8f0" font-size="11">Integrated MAC</text>
+      <line x1="680" y1="316" x2="870" y2="316" stroke="#1e2d44" stroke-width="0.5"/>
+      <text x="680" y="334" fill="#94a3b8" font-size="11" font-weight="600">Auto Ethernet</text>
+      <text x="870" y="334" text-anchor="end" fill="#ec4899" font-size="11" font-weight="600">100BASE-T1</text>
+      <line x1="680" y1="344" x2="870" y2="344" stroke="#1e2d44" stroke-width="0.5"/>
+      <text x="680" y="362" fill="#94a3b8" font-size="11" font-weight="600">HAL</text>
+      <text x="870" y="362" text-anchor="end" fill="#f59e0b" font-size="11">hal_stm32</text>
+      <line x1="680" y1="372" x2="870" y2="372" stroke="#1e2d44" stroke-width="0.5"/>
+      <text x="680" y="390" fill="#94a3b8" font-size="11" font-weight="600">Status</text>
+      <text x="870" y="390" text-anchor="end" fill="#64748b" font-size="11">Under evaluation</text>
+
+      <!-- Key insight callout -->
+      <rect x="100" y="435" width="790" height="0" rx="0" fill="none"/>
+      <text x="450" y="436" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="700">KEY INSIGHT</text>
+    </svg>
+  </div>
+  <!-- Callout box below SVG -->
+  <div style="max-width:760px; margin:10px auto 0; background:#f59e0b08; border:1px solid #f59e0b30; border-radius:12px; padding:20px 28px;">
+    <p style="color:#f59e0b; font-weight:700; margin-bottom:8px; font-size:0.95rem;">Only the bottom two layers change when you switch chips.</p>
+    <p style="color:#94a3b8; font-size:0.88rem; line-height:1.7;">
+      Our CEELL code and Zephyr stay <strong style="color:#e2e8f0;">identical</strong>.
+      Moving from NXP to ST means: <code style="background:#1a2234; padding:2px 8px; border-radius:4px; font-size:0.82rem;">west build -b <em>st_board_name</em></code> instead of <code style="background:#1a2234; padding:2px 8px; border-radius:4px; font-size:0.82rem;">west build -b mr_canhubk3</code>.
+      The discovery, config, networking — all the logic — stays exactly the same.
+      That's the whole point of building on Zephyr: <strong style="color:#e2e8f0;">hardware independence</strong>.
+    </p>
+  </div>
+</section>
+
+<!-- ==================== DEVELOPMENT ROADMAP ==================== -->
+<section>
+  <div class="section-label">Development Plan</div>
+  <div class="section-title">Roadmap — What's Done, What's Next</div>
+  <div class="section-desc">
+    We're building in phases. Each phase adds a layer of capability.
+    Green = code written. Yellow = next up. Grey = future.
+  </div>
+  <div class="roadmap">
+
+    <!-- Phase 1: DONE -->
+    <div class="phase-card" style="border-color: #10b98140;">
+      <div class="phase-header">
+        <span class="phase-badge done">DONE</span>
+        <span class="title">Phase 1 — Virtual Proof of Concept</span>
+        <span class="when">Feb 2026</span>
+      </div>
+      <div class="phase-body">
+        <div class="phase-desc">
+          3 simulated ECUs boot, read their config, find each other on the network.
+          Everything runs in Renode (a chip simulator) — no physical hardware needed.
+          This proves the core architecture works.
+        </div>
+        <div class="phase-items">
+          <div class="phase-item"><div class="check done">&#10003;</div>Build system (West + CMake)</div>
+          <div class="phase-item"><div class="check done">&#10003;</div>JSON config parser</div>
+          <div class="phase-item"><div class="check done">&#10003;</div>Node identity system</div>
+          <div class="phase-item"><div class="check done">&#10003;</div>UDP multicast discovery</div>
+          <div class="phase-item"><div class="check done">&#10003;</div>3-node Renode simulation</div>
+          <div class="phase-item"><div class="check done">&#10003;</div>Robot Framework tests</div>
+          <div class="phase-item"><div class="check done">&#10003;</div>GitHub CI pipeline</div>
+          <div class="phase-item"><div class="check done">&#10003;</div>Health/lifecycle monitor</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 1.5: WIP -->
+    <div class="phase-card" style="border-color: #f59e0b40;">
+      <div class="phase-header">
+        <span class="phase-badge wip">NEXT</span>
+        <span class="title">Phase 1.5 — Single Binary + Flash Config</span>
+        <span class="when">Upcoming</span>
+      </div>
+      <div class="phase-body">
+        <div class="phase-desc">
+          Today we build 3 separate firmwares (one per node role). The goal is one universal binary —
+          each board reads a unique JSON from its flash chip to know its identity. Same .elf file
+          for every ECU in the car, configured at provisioning time.
+        </div>
+        <div class="phase-items">
+          <div class="phase-item"><div class="check wip">&#9679;</div>Flash provisioning in Renode</div>
+          <div class="phase-item"><div class="check wip">&#9679;</div>Single binary, per-node config</div>
+          <div class="phase-item"><div class="check wip">&#9679;</div>Config validation + versioning</div>
+          <div class="phase-item"><div class="check wip">&#9679;</div>OTA config update prototype</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 2: TODO -->
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-badge todo">PLANNED</span>
+        <span class="title">Phase 2 — Real Hardware</span>
+        <span class="when">TBD</span>
+      </div>
+      <div class="phase-body">
+        <div class="phase-desc">
+          Flash the firmware onto a real MR-CANHUBK3 board. Plug in 100BASE-T1 automotive
+          Ethernet cables. Same code that worked in simulation now runs on physical silicon.
+          Add CAN bus support for legacy ECU communication.
+        </div>
+        <div class="phase-items">
+          <div class="phase-item"><div class="check todo">&#8226;</div>Flash to MR-CANHUBK3 board</div>
+          <div class="phase-item"><div class="check todo">&#8226;</div>100BASE-T1 Ethernet validation</div>
+          <div class="phase-item"><div class="check todo">&#8226;</div>CAN FD bus integration</div>
+          <div class="phase-item"><div class="check todo">&#8226;</div>Multi-board bench test</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 3: TODO -->
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-badge todo">PLANNED</span>
+        <span class="title">Phase 3 — Multi-Vendor + Production</span>
+        <span class="when">TBD</span>
+      </div>
+      <div class="phase-body">
+        <div class="phase-desc">
+          Port CEELL to a second chip vendor (ST SR6 P3E or NXP S32K5) to prove portability.
+          Add safety features (watchdog, error recovery), secure boot, and production diagnostics.
+          This is where the "write once, run on any vendor" promise gets validated.
+        </div>
+        <div class="phase-items">
+          <div class="phase-item"><div class="check todo">&#8226;</div>Port to ST SR6 P3E or S32K5</div>
+          <div class="phase-item"><div class="check todo">&#8226;</div>Secure boot + firmware signing</div>
+          <div class="phase-item"><div class="check todo">&#8226;</div>Watchdog + error recovery</div>
+          <div class="phase-item"><div class="check todo">&#8226;</div>Production diagnostics (UDS/DoIP)</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ==================== NETWORK TOPOLOGY ==================== -->
+<section>
+  <div class="section-label">Phase 1 — What We Built</div>
+  <div class="section-title">3 Virtual ECUs Discovering Each Other</div>
+  <div class="section-desc">
+    In simulation, three virtual ECUs boot up and automatically find each other
+    using multicast messages over a virtual Ethernet switch. Each ECU announces
+    "I'm here, my role is X" once per second. On real hardware, these same messages
+    would travel over automotive Ethernet cables between physical boards.
+  </div>
+  <div class="topology-container">
+    <svg viewBox="0 0 900 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+          <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#1e2d44" stroke-width="0.5" opacity="0.3"/>
+        </pattern>
+        <linearGradient id="link1" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#8b5cf6"/>
+        </linearGradient>
+        <linearGradient id="link2" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#10b981"/>
+        </linearGradient>
+        <linearGradient id="link3" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#10b981"/>
+        </linearGradient>
+      </defs>
+      <rect width="900" height="500" fill="url(#grid)"/>
+
+      <!-- Ethernet Switch -->
+      <rect x="370" y="210" width="160" height="80" rx="12" fill="#1a2234" stroke="#3b82f6" stroke-width="2"/>
+      <text x="450" y="242" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="700" letter-spacing="0.08em">VIRTUAL</text>
+      <text x="450" y="262" text-anchor="middle" fill="#e2e8f0" font-size="14" font-weight="800">Ethernet Switch</text>
+      <text x="450" y="280" text-anchor="middle" fill="#64748b" font-size="9">Real HW: automotive Ethernet cables</text>
+
+      <!-- Links -->
+      <line x1="200" y1="170" x2="380" y2="230" stroke="url(#link1)" stroke-width="2" stroke-dasharray="6 4" class="flow-line"/>
+      <line x1="700" y1="170" x2="520" y2="230" stroke="url(#link2)" stroke-width="2" stroke-dasharray="6 4" class="flow-line"/>
+      <line x1="450" y1="410" x2="450" y2="290" stroke="url(#link3)" stroke-width="2" stroke-dasharray="6 4" class="flow-line"/>
+
+      <!-- Node 1: Body -->
+      <g>
+        <rect x="80" y="60" width="240" height="130" rx="14" fill="#111827" stroke="#3b82f6" stroke-width="1.5"/>
+        <circle cx="110" cy="92" r="16" fill="#3b82f620" stroke="#3b82f6" stroke-width="1.5"/>
+        <text x="110" y="97" text-anchor="middle" fill="#3b82f6" font-size="14">1</text>
+        <text x="136" y="88" fill="#e2e8f0" font-size="15" font-weight="700">Body Controller</text>
+        <text x="136" y="104" fill="#64748b" font-size="11">Windows, doors, seats, mirrors</text>
+        <line x1="100" y1="118" x2="300" y2="118" stroke="#1e2d44" stroke-width="1"/>
+        <text x="100" y="138" fill="#94a3b8" font-size="11">IP</text>
+        <text x="300" y="138" text-anchor="end" fill="#3b82f6" font-size="12" font-weight="600" font-family="monospace">192.168.1.10</text>
+        <text x="100" y="158" fill="#94a3b8" font-size="11">Role</text>
+        <text x="300" y="158" text-anchor="end" fill="#10b981" font-size="12" font-weight="600">body</text>
+        <text x="100" y="178" fill="#94a3b8" font-size="11">Config</text>
+        <text x="300" y="178" text-anchor="end" fill="#94a3b8" font-size="11" font-family="monospace">node_body.json</text>
+      </g>
+
+      <!-- Node 2: Chassis -->
+      <g>
+        <rect x="580" y="60" width="240" height="130" rx="14" fill="#111827" stroke="#8b5cf6" stroke-width="1.5"/>
+        <circle cx="610" cy="92" r="16" fill="#8b5cf620" stroke="#8b5cf6" stroke-width="1.5"/>
+        <text x="610" y="97" text-anchor="middle" fill="#8b5cf6" font-size="14">2</text>
+        <text x="636" y="88" fill="#e2e8f0" font-size="15" font-weight="700">Chassis Controller</text>
+        <text x="636" y="104" fill="#64748b" font-size="11">Suspension, braking, steering</text>
+        <line x1="600" y1="118" x2="800" y2="118" stroke="#1e2d44" stroke-width="1"/>
+        <text x="600" y="138" fill="#94a3b8" font-size="11">IP</text>
+        <text x="800" y="138" text-anchor="end" fill="#8b5cf6" font-size="12" font-weight="600" font-family="monospace">192.168.1.11</text>
+        <text x="600" y="158" fill="#94a3b8" font-size="11">Role</text>
+        <text x="800" y="158" text-anchor="end" fill="#10b981" font-size="12" font-weight="600">chassis</text>
+        <text x="600" y="178" fill="#94a3b8" font-size="11">Config</text>
+        <text x="800" y="178" text-anchor="end" fill="#94a3b8" font-size="11" font-family="monospace">node_chassis.json</text>
+      </g>
+
+      <!-- Node 3: Lights -->
+      <g>
+        <rect x="330" y="370" width="240" height="130" rx="14" fill="#111827" stroke="#10b981" stroke-width="1.5"/>
+        <circle cx="360" cy="402" r="16" fill="#10b98120" stroke="#10b981" stroke-width="1.5"/>
+        <text x="360" y="407" text-anchor="middle" fill="#10b981" font-size="14">3</text>
+        <text x="386" y="398" fill="#e2e8f0" font-size="15" font-weight="700">Lights Controller</text>
+        <text x="386" y="414" fill="#64748b" font-size="11">Headlights, taillights, signals</text>
+        <line x1="350" y1="428" x2="550" y2="428" stroke="#1e2d44" stroke-width="1"/>
+        <text x="350" y="448" fill="#94a3b8" font-size="11">IP</text>
+        <text x="550" y="448" text-anchor="end" fill="#10b981" font-size="12" font-weight="600" font-family="monospace">192.168.1.12</text>
+        <text x="350" y="468" fill="#94a3b8" font-size="11">Role</text>
+        <text x="550" y="468" text-anchor="end" fill="#10b981" font-size="12" font-weight="600">lights</text>
+        <text x="350" y="488" fill="#94a3b8" font-size="11">Config</text>
+        <text x="550" y="488" text-anchor="end" fill="#94a3b8" font-size="11" font-family="monospace">node_lights.json</text>
+      </g>
+
+      <!-- Multicast label -->
+      <rect x="335" y="310" width="230" height="28" rx="14" fill="#f59e0b18" stroke="#f59e0b" stroke-width="1"/>
+      <text x="450" y="329" text-anchor="middle" fill="#f59e0b" font-size="11" font-weight="600">Announcements: "I'm here, I'm a ___"</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ==================== HOW DISCOVERY WORKS ==================== -->
+<section>
+  <div class="section-label">How It Works</div>
+  <div class="section-title">Nodes Find Each Other Automatically</div>
+  <div class="section-desc">
+    Every second, each node broadcasts a message saying "Hi, I'm node X, my role is Y."
+    When a node hears a message from someone new, it adds them to its list of known peers.
+    Within about 1 second of booting, every node knows about every other node.
+    No manual configuration needed — just plug in and go.
+  </div>
+  <div class="protocol-viz">
+    <svg viewBox="0 0 860 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+        </marker>
+        <marker id="arrowPurple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#8b5cf6"/>
+        </marker>
+        <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#10b981"/>
+        </marker>
+      </defs>
+
+      <text x="130" y="24" text-anchor="middle" fill="#3b82f6" font-size="13" font-weight="700">Body</text>
+      <text x="430" y="24" text-anchor="middle" fill="#8b5cf6" font-size="13" font-weight="700">Chassis</text>
+      <text x="730" y="24" text-anchor="middle" fill="#10b981" font-size="13" font-weight="700">Lights</text>
+
+      <line x1="130" y1="40" x2="130" y2="400" stroke="#3b82f640" stroke-width="2"/>
+      <line x1="430" y1="40" x2="430" y2="400" stroke="#8b5cf640" stroke-width="2"/>
+      <line x1="730" y1="40" x2="730" y2="400" stroke="#10b98140" stroke-width="2"/>
+
+      <!-- Boot -->
+      <text x="30" y="75" fill="#64748b" font-size="11" font-family="monospace">Power on</text>
+      <circle cx="130" cy="71" r="5" fill="#3b82f6"/>
+      <circle cx="430" cy="71" r="5" fill="#8b5cf6"/>
+      <circle cx="730" cy="71" r="5" fill="#10b981"/>
+      <text x="160" y="75" fill="#94a3b8" font-size="10">reads config, starts discovery</text>
+
+      <!-- Body announces -->
+      <text x="30" y="130" fill="#64748b" font-size="11" font-family="monospace">~1 sec</text>
+      <line x1="140" y1="126" x2="420" y2="140" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+      <line x1="140" y1="126" x2="720" y2="145" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+      <rect x="195" y="112" width="190" height="22" rx="4" fill="#111827" stroke="#3b82f640" stroke-width="1"/>
+      <text x="290" y="127" text-anchor="middle" fill="#3b82f6" font-size="10">"Hi, I'm Body, node #1"</text>
+
+      <!-- Chassis announces -->
+      <text x="30" y="195" fill="#64748b" font-size="11" font-family="monospace">~1 sec</text>
+      <line x1="440" y1="191" x2="140" y2="205" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#arrowPurple)"/>
+      <line x1="440" y1="191" x2="720" y2="205" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#arrowPurple)"/>
+      <rect x="458" y="177" width="215" height="22" rx="4" fill="#111827" stroke="#8b5cf640" stroke-width="1"/>
+      <text x="565" y="192" text-anchor="middle" fill="#8b5cf6" font-size="10">"Hi, I'm Chassis, node #2"</text>
+
+      <!-- Lights announces -->
+      <text x="30" y="260" fill="#64748b" font-size="11" font-family="monospace">~1 sec</text>
+      <line x1="720" y1="256" x2="140" y2="270" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+      <line x1="720" y1="256" x2="440" y2="268" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+      <rect x="492" y="242" width="210" height="22" rx="4" fill="#111827" stroke="#10b98140" stroke-width="1"/>
+      <text x="597" y="257" text-anchor="middle" fill="#10b981" font-size="10">"Hi, I'm Lights, node #3"</text>
+
+      <!-- Result -->
+      <text x="30" y="330" fill="#64748b" font-size="11" font-family="monospace">Result</text>
+
+      <rect x="50" y="335" width="160" height="30" rx="6" fill="#3b82f610" stroke="#3b82f630" stroke-width="1"/>
+      <text x="130" y="355" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="600">Body knows 2 peers</text>
+
+      <rect x="350" y="335" width="160" height="30" rx="6" fill="#8b5cf610" stroke="#8b5cf630" stroke-width="1"/>
+      <text x="430" y="355" text-anchor="middle" fill="#8b5cf6" font-size="10" font-weight="600">Chassis knows 2 peers</text>
+
+      <rect x="650" y="335" width="160" height="30" rx="6" fill="#10b98110" stroke="#10b98130" stroke-width="1"/>
+      <text x="730" y="355" text-anchor="middle" fill="#10b981" font-size="10" font-weight="600">Lights knows 2 peers</text>
+
+      <rect x="230" y="385" width="400" height="30" rx="8" fill="#10b98115" stroke="#10b981" stroke-width="1"/>
+      <text x="430" y="405" text-anchor="middle" fill="#10b981" font-size="12" font-weight="700">All nodes discovered — network is live</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ==================== BOOT SEQUENCE ==================== -->
+<section>
+  <div class="section-label">Inside Each Node</div>
+  <div class="section-title">What Happens When a Node Powers On</div>
+  <div class="section-desc">
+    Each ECU follows the same 5-step startup sequence. The whole process
+    takes milliseconds. By the end, the node is on the network and talking to its peers.
+  </div>
+  <div class="sequence">
+    <div class="seq-line"></div>
+    <div class="seq-step">
+      <div class="seq-dot" style="border-color:#3b82f6"></div>
+      <div class="time">STEP 1</div>
+      <div class="label" style="color:#3b82f6">Read Configuration</div>
+      <div class="desc">The node reads a JSON file from its flash memory to learn its identity — "Am I the body controller? The lights controller?" If flash is empty, it uses built-in defaults.</div>
+    </div>
+    <div class="seq-step">
+      <div class="seq-dot" style="border-color:#8b5cf6"></div>
+      <div class="time">STEP 2</div>
+      <div class="label" style="color:#8b5cf6">Lock In Identity</div>
+      <div class="desc">The node stores its ID, role, name, and IP address in memory. This can't be changed while running — the node knows who it is for the rest of its life.</div>
+    </div>
+    <div class="seq-step">
+      <div class="seq-dot" style="border-color:#f59e0b"></div>
+      <div class="time">STEP 3</div>
+      <div class="label" style="color:#f59e0b">Open Network Socket</div>
+      <div class="desc">Opens a communication channel on the Ethernet network and joins a "multicast group" — think of it as tuning into a shared radio frequency that all CEELL nodes listen to.</div>
+    </div>
+    <div class="seq-step">
+      <div class="seq-dot" style="border-color:#10b981"></div>
+      <div class="time">STEP 4</div>
+      <div class="label" style="color:#10b981">Start Discovery</div>
+      <div class="desc">Two background workers start: one broadcasts "I'm here" every second, the other listens for announcements from other nodes and adds them to a peer list.</div>
+    </div>
+    <div class="seq-step">
+      <div class="seq-dot" style="border-color:#ef4444"></div>
+      <div class="time">STEP 5</div>
+      <div class="label" style="color:#ef4444">Health Monitoring</div>
+      <div class="desc">Every 5 seconds, the node logs a health check: "I'm alive, I know about N peers." This runs forever and is the heartbeat of the system.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== MODULE STACK ==================== -->
+<section>
+  <div class="section-label">Code Organization</div>
+  <div class="section-title">Software Modules</div>
+  <div class="stack-grid">
+    <div class="stack-col">
+      <div class="stack-col-header">
+        <div class="icon" style="background:#3b82f620;color:#3b82f6">C</div>
+        Core
+      </div>
+      <div class="stack-layer"><span class="name">config_parser</span><span class="detail">flash &rarr; JSON</span></div>
+      <div class="stack-layer"><span class="name">node_identity</span><span class="detail">who am I?</span></div>
+      <div class="stack-layer"><span class="name">lifecycle</span><span class="detail">health check</span></div>
+    </div>
+    <div class="stack-col">
+      <div class="stack-col-header">
+        <div class="icon" style="background:#8b5cf620;color:#8b5cf6">N</div>
+        Network
+      </div>
+      <div class="stack-layer"><span class="name">discovery TX</span><span class="detail">announce self</span></div>
+      <div class="stack-layer"><span class="name">discovery RX</span><span class="detail">listen for peers</span></div>
+      <div class="stack-layer"><span class="name">peer table</span><span class="detail">who's out there?</span></div>
+    </div>
+    <div class="stack-col">
+      <div class="stack-col-header">
+        <div class="icon" style="background:#10b98120;color:#10b981">P</div>
+        Platform (not ours)
+      </div>
+      <div class="stack-layer"><span class="name">Zephyr RTOS</span><span class="detail">v4.1.0</span></div>
+      <div class="stack-layer"><span class="name">NXP HAL</span><span class="detail">chip drivers</span></div>
+      <div class="stack-layer"><span class="name">Ethernet MAC</span><span class="detail">network HW</span></div>
+      <div class="stack-layer"><span class="name">Flash Memory</span><span class="detail">config storage</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== NODE CONFIGS ==================== -->
+<section>
+  <div class="section-label">Configuration</div>
+  <div class="section-title">The 3 Test Nodes</div>
+  <div class="section-desc">
+    Each node gets its own config file telling it who it is. In Phase 1, this is baked into
+    the build. In Phase 1.5, all nodes will run the same binary and read their identity from flash.
+  </div>
+  <div class="config-cards">
+    <div class="config-card">
+      <div class="config-card-head">
+        <div class="node-icon" style="background:#3b82f620;color:#3b82f6">1</div>
+        <div class="info"><div class="name">ceell-body</div><div class="role">Body Controller</div></div>
+      </div>
+      <div class="config-card-body">
+        <div class="config-row"><span class="key">node_id</span><span class="val" style="color:#3b82f6">1</span></div>
+        <div class="config-row"><span class="key">role</span><span class="val">body</span></div>
+        <div class="config-row"><span class="key">IP address</span><span class="val">192.168.1.10</span></div>
+        <div class="config-row"><span class="key">function</span><span class="val" style="color:var(--text3)">windows, doors, seats</span></div>
+      </div>
+    </div>
+    <div class="config-card">
+      <div class="config-card-head">
+        <div class="node-icon" style="background:#8b5cf620;color:#8b5cf6">2</div>
+        <div class="info"><div class="name">ceell-chassis</div><div class="role">Chassis Controller</div></div>
+      </div>
+      <div class="config-card-body">
+        <div class="config-row"><span class="key">node_id</span><span class="val" style="color:#8b5cf6">2</span></div>
+        <div class="config-row"><span class="key">role</span><span class="val">chassis</span></div>
+        <div class="config-row"><span class="key">IP address</span><span class="val">192.168.1.11</span></div>
+        <div class="config-row"><span class="key">function</span><span class="val" style="color:var(--text3)">suspension, braking</span></div>
+      </div>
+    </div>
+    <div class="config-card">
+      <div class="config-card-head">
+        <div class="node-icon" style="background:#10b98120;color:#10b981">3</div>
+        <div class="info"><div class="name">ceell-lights</div><div class="role">Lights Controller</div></div>
+      </div>
+      <div class="config-card-body">
+        <div class="config-row"><span class="key">node_id</span><span class="val" style="color:#10b981">3</span></div>
+        <div class="config-row"><span class="key">role</span><span class="val">lights</span></div>
+        <div class="config-row"><span class="key">IP address</span><span class="val">192.168.1.12</span></div>
+        <div class="config-row"><span class="key">function</span><span class="val" style="color:var(--text3)">headlights, signals</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FILE MAP ==================== -->
+<section>
+  <div class="section-label">Project Structure</div>
+  <div class="section-title">File Map — 30 Files</div>
+  <div class="file-tree">
+    <div class="file-group">
+      <div class="file-group-title" style="color:#3b82f6">Build System <span class="ct">10</span></div>
+      <div class="file-entry"><span class="ficon">&#9881;</span> west.yml</div>
+      <div class="file-entry"><span class="ficon">&#9881;</span> CMakeLists.txt</div>
+      <div class="file-entry"><span class="ficon">&#9881;</span> prj.conf</div>
+      <div class="file-entry"><span class="ficon">&#9881;</span> Kconfig</div>
+      <div class="file-entry"><span class="ficon">&#9881;</span> VERSION</div>
+      <div class="file-entry"><span class="ficon">&#9881;</span> ceell/CMakeLists.txt</div>
+      <div class="file-entry"><span class="ficon">&#9881;</span> ceell/core/CMakeLists.txt</div>
+      <div class="file-entry"><span class="ficon">&#9881;</span> ceell/network/CMakeLists.txt</div>
+      <div class="file-entry"><span class="ficon">&#9881;</span> boards/…/mr_canhubk3.overlay</div>
+    </div>
+    <div class="file-group">
+      <div class="file-group-title" style="color:#8b5cf6">Core <span class="ct">6</span></div>
+      <div class="file-entry"><span class="ficon">&#9671;</span> config_parser.h/.c</div>
+      <div class="file-entry"><span class="ficon">&#9671;</span> node_identity.h/.c</div>
+      <div class="file-entry"><span class="ficon">&#9671;</span> lifecycle.h/.c</div>
+    </div>
+    <div class="file-group">
+      <div class="file-group-title" style="color:#10b981">Network <span class="ct">2</span></div>
+      <div class="file-entry"><span class="ficon">&#9671;</span> discovery.h/.c</div>
+    </div>
+    <div class="file-group">
+      <div class="file-group-title" style="color:#f59e0b">Application <span class="ct">1</span></div>
+      <div class="file-entry"><span class="ficon">&#9654;</span> src/main.c</div>
+    </div>
+    <div class="file-group">
+      <div class="file-group-title" style="color:#ec4899">Config Files <span class="ct">6</span></div>
+      <div class="file-entry"><span class="ficon">&#123;&#125;</span> node_body/chassis/lights.json</div>
+      <div class="file-entry"><span class="ficon">&#9881;</span> renode_body/chassis/lights.conf</div>
+    </div>
+    <div class="file-group">
+      <div class="file-group-title" style="color:#ef4444">Simulation &amp; Tests <span class="ct">5</span></div>
+      <div class="file-entry"><span class="ficon">&#9656;</span> mr_canhubk3_ceell.repl</div>
+      <div class="file-entry"><span class="ficon">&#9656;</span> ceell_single.resc / ceell_3node.resc</div>
+      <div class="file-entry"><span class="ficon">&#9881;</span> test_boot.robot / test_discovery.robot</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CI ==================== -->
+<section style="padding-bottom:80px;">
+  <div class="section-label">Quality Assurance</div>
+  <div class="section-title">Automated Testing Pipeline</div>
+  <div class="section-desc">
+    Every time code is pushed to GitHub, an automated pipeline builds all 3 firmware variants
+    and runs them in a virtual chip simulator (Renode). The tests check that nodes boot correctly
+    and discover each other. If anything breaks, we know immediately.
+  </div>
+  <div class="ci-container">
+    <svg viewBox="0 0 700 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Step 1 -->
+      <rect x="0" y="30" width="120" height="70" rx="10" fill="#111827" stroke="#3b82f6" stroke-width="1.5"/>
+      <text x="60" y="56" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="700">GIT PUSH</text>
+      <text x="60" y="72" text-anchor="middle" fill="#64748b" font-size="9">triggers CI</text>
+      <text x="60" y="86" text-anchor="middle" fill="#64748b" font-size="9">automatically</text>
+
+      <text x="140" y="68" text-anchor="middle" fill="#334155" font-size="16">&rarr;</text>
+
+      <!-- Step 2 -->
+      <rect x="160" y="30" width="130" height="70" rx="10" fill="#111827" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="225" y="56" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="700">BUILD x3</text>
+      <text x="225" y="72" text-anchor="middle" fill="#64748b" font-size="9">body + chassis</text>
+      <text x="225" y="86" text-anchor="middle" fill="#64748b" font-size="9">+ lights firmware</text>
+
+      <text x="310" y="68" text-anchor="middle" fill="#334155" font-size="16">&rarr;</text>
+
+      <!-- Step 3 -->
+      <rect x="330" y="30" width="160" height="70" rx="10" fill="#111827" stroke="#8b5cf6" stroke-width="1.5"/>
+      <text x="410" y="56" text-anchor="middle" fill="#8b5cf6" font-size="10" font-weight="700">SIMULATE IN RENODE</text>
+      <text x="410" y="72" text-anchor="middle" fill="#64748b" font-size="9">boot test + discovery</text>
+      <text x="410" y="86" text-anchor="middle" fill="#64748b" font-size="9">test (3 virtual nodes)</text>
+
+      <text x="510" y="68" text-anchor="middle" fill="#334155" font-size="16">&rarr;</text>
+
+      <!-- Step 4 -->
+      <rect x="530" y="30" width="100" height="70" rx="10" fill="#10b98115" stroke="#10b981" stroke-width="2"/>
+      <text x="580" y="60" text-anchor="middle" fill="#10b981" font-size="18" font-weight="800">PASS</text>
+      <text x="580" y="80" text-anchor="middle" fill="#10b981" font-size="9" font-weight="600">all tests green</text>
+
+      <!-- Label -->
+      <text x="350" y="18" text-anchor="middle" fill="#64748b" font-size="10">GitHub Actions — runs on every push, no manual steps</text>
+    </svg>
+  </div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,10 @@
+build/
+.DS_Store
+*.bin
+__pycache__/
+*.pyc
+log.html
+report.html
+robot_output.xml
+logs/
+snapshots/
