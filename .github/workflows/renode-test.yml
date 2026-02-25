@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     container:
-      image: antmicro/renode:latest
+      image: antmicro/renode:1.16.1
       options: --user root
 
     steps:
