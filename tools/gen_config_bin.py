@@ -14,7 +14,7 @@ import sys
 PARTITION_SIZE = 64 * 1024  # 64KB config partition
 REQUIRED_FIELDS = {"version", "node_id", "role", "name", "ip", "netmask"}
 OPTIONAL_FIELDS = {"services"}
-SUPPORTED_VERSIONS = {1}
+SUPPORTED_VERSIONS = {1, 2}
 
 
 def main():
