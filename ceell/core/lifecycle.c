@@ -1,12 +1,18 @@
+/* REQ-SAF-001 */ /* REQ-SAF-002 */
+
 #include "lifecycle.h"
 #include "node_identity.h"
 #include "discovery.h"
+#include "health_monitor.h"
+#ifdef CONFIG_CEELL_WATCHDOG
+#include "watchdog.h"
+#endif
 #ifdef CONFIG_CEELL_TEST_ECHO_SERVICE
 #include "messaging.h"
 #include "service_discovery.h"
 #endif
 
-#include <zephyr/kernel.h>
+#include "osal.h"
 
 #define LIFECYCLE_INTERVAL_SEC 5
 
@@ -18,17 +24,21 @@ void ceell_lifecycle_run(void)
 #endif
 
 	if (!id) {
-		printk("CEELL: lifecycle — identity not set\n");
+		ceell_printk("CEELL: lifecycle — identity not set\n");
 		return;
 	}
 
 	while (1) {
 		ceell_discovery_expire_peers();
+		ceell_health_update();
+#ifdef CONFIG_CEELL_WATCHDOG
+		ceell_watchdog_feed();
+#endif
 
 		int peers = ceell_discovery_peer_count();
 
-		printk("CEELL_HEALTH node_id=%u peers=%d\n",
-		       id->node_id, peers);
+		ceell_printk("CEELL_HEALTH node_id=%u peers=%d\n",
+			     id->node_id, peers);
 
 #ifdef CONFIG_CEELL_TEST_ECHO_SERVICE
 		/* Once we have peers, send echo test (retries until success) */
@@ -38,23 +48,23 @@ void ceell_lifecycle_run(void)
 			if (ceell_service_find_peer("echo", peer_ip) == 0) {
 				struct ceell_msg rsp;
 
-				printk("CEELL_ECHO_TEST sending to %s\n",
-				       peer_ip);
+				ceell_printk("CEELL_ECHO_TEST sending to %s\n",
+					     peer_ip);
 				int ret = ceell_msg_send("echo", "hello-ceell",
 							 &rsp,
-							 K_SECONDS(5));
+							 CEELL_SECONDS(5));
 				if (ret == 0) {
-					printk("CEELL_ECHO_TEST_OK status=%d payload=%s\n",
-					       rsp.status, rsp.payload);
+					ceell_printk("CEELL_ECHO_TEST_OK status=%d payload=%s\n",
+						     rsp.status, rsp.payload);
 					echo_tested = true;
 				} else {
-					printk("CEELL_ECHO_TEST_FAIL err=%d (will retry)\n",
-					       ret);
+					ceell_printk("CEELL_ECHO_TEST_FAIL err=%d (will retry)\n",
+						     ret);
 				}
 			}
 		}
 #endif
 
-		k_sleep(K_SECONDS(LIFECYCLE_INTERVAL_SEC));
+		ceell_sleep(CEELL_SECONDS(LIFECYCLE_INTERVAL_SEC));
 	}
 }

@@ -1,7 +1,8 @@
 #ifndef CEELL_SERVICE_REGISTRY_H
 #define CEELL_SERVICE_REGISTRY_H
 
-#include <zephyr/kernel.h>
+#include <stddef.h>
+#include <stdint.h>
 
 struct ceell_msg;
 
@@ -23,7 +24,21 @@ typedef int (*ceell_service_handler_t)(const char *payload,
 void ceell_service_init(void);
 
 /**
- * Register a named service with its handler.
+ * Register a named service with its handler and SLA parameters.
+ *
+ * @param name        Service name (max 31 chars, copied internally)
+ * @param handler     Callback invoked on incoming requests for this service
+ * @param priority    Priority class (0=CRITICAL, 1=NORMAL, 2=BULK)
+ * @param deadline_ms Deadline in ms (0 = no deadline)
+ * @return 0 on success, -ENOMEM if registry full, -EINVAL if args invalid
+ */
+int ceell_service_register_sla(const char *name,
+			       ceell_service_handler_t handler,
+			       uint8_t priority, uint16_t deadline_ms);
+
+/**
+ * Register a named service with its handler using default SLA
+ * (NORMAL priority, no deadline). Backward-compatible wrapper.
  *
  * @param name Service name (max 31 chars, copied internally)
  * @param handler Callback invoked on incoming requests for this service
@@ -51,6 +66,22 @@ const char *ceell_service_get_name(int index);
  * @return Handler function or NULL if not found
  */
 ceell_service_handler_t ceell_service_get_handler(const char *name);
+
+/**
+ * Get the priority of a registered service.
+ *
+ * @param name Service name to look up
+ * @return Priority (0=CRITICAL, 1=NORMAL, 2=BULK), or 1 (NORMAL) if not found
+ */
+uint8_t ceell_service_get_priority(const char *name);
+
+/**
+ * Get the deadline of a registered service.
+ *
+ * @param name Service name to look up
+ * @return Deadline in ms, or 0 if not found or no deadline configured
+ */
+uint16_t ceell_service_get_deadline(const char *name);
 
 /**
  * Build a comma-separated string of all registered service names.

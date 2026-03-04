@@ -1,6 +1,8 @@
-#include <zephyr/kernel.h>
+/* REQ-SAF-001 */
+
 #include <string.h>
 
+#include "osal_log.h"
 #include "config_parser.h"
 #include "net_setup.h"
 #include "node_identity.h"
@@ -8,6 +10,10 @@
 #include "discovery.h"
 #include "messaging.h"
 #include "lifecycle.h"
+
+#ifdef CONFIG_CEELL_OTA
+#include "ota_client.h"
+#endif
 
 #ifdef CONFIG_CEELL_TEST_ECHO_SERVICE
 static int echo_handler(const char *payload, char *rsp_payload, size_t rsp_len)
@@ -18,44 +24,55 @@ static int echo_handler(const char *payload, char *rsp_payload, size_t rsp_len)
 }
 #endif
 
+
 int main(void)
 {
 	struct ceell_config cfg;
 	int ret;
 
-	printk("CEELL middleware starting\n");
+	ceell_printk("CEELL middleware starting\n");
 
 	/* Step 1: Load config from flash (or defaults) */
 	ret = ceell_config_load(&cfg);
 	if (ret < 0) {
-		printk("CEELL: fatal config error (%d)\n", ret);
+		ceell_printk("CEELL: fatal config error (%d)\n", ret);
 		return ret;
 	}
-	printk("CEELL: Config loaded (from_flash=%d)\n", cfg.from_flash);
+	ceell_printk("CEELL: Config loaded (from_flash=%d version=%u)\n",
+		     cfg.from_flash, cfg.version);
 
 	/* Step 2: Set IP + netmask on Ethernet interface */
 	ret = ceell_net_setup(&cfg);
 	if (ret < 0) {
-		printk("CEELL: net setup failed (%d)\n", ret);
+		ceell_printk("CEELL: net setup failed (%d)\n", ret);
 		return ret;
 	}
 
 	/* Step 3: Set node identity */
 	ret = ceell_identity_init(&cfg);
 	if (ret < 0 && ret != -EALREADY) {
-		printk("CEELL: identity init failed (%d)\n", ret);
+		ceell_printk("CEELL: identity init failed (%d)\n", ret);
 		return ret;
 	}
 
 	/* Step 4: Initialize service registry */
 	ceell_service_init();
 
-	/* Step 5: Register services from config */
+	/* Step 5: Register services from config with SLA data */
 	for (int i = 0; i < cfg.service_count; i++) {
-		ret = ceell_service_register(cfg.services[i], NULL);
+		if (cfg.version == CEELL_CONFIG_VERSION_V2) {
+			/* V2: register with per-service SLA */
+			ret = ceell_service_register_sla(
+				cfg.services[i], NULL,
+				cfg.service_slas[i].priority,
+				cfg.service_slas[i].deadline_ms);
+		} else {
+			/* V1 or defaults: register with default SLA */
+			ret = ceell_service_register(cfg.services[i], NULL);
+		}
 		if (ret < 0) {
-			printk("CEELL: failed to register service '%s' (%d)\n",
-			       cfg.services[i], ret);
+			ceell_printk("CEELL: failed to register service "
+				     "'%s' (%d)\n", cfg.services[i], ret);
 		}
 	}
 
@@ -66,22 +83,35 @@ int main(void)
 	/* Step 6: Initialize discovery */
 	ret = ceell_discovery_init();
 	if (ret < 0) {
-		printk("CEELL: discovery init failed (%d)\n", ret);
+		ceell_printk("CEELL: discovery init failed (%d)\n", ret);
 		return ret;
 	}
 
 	/* Step 7: Start discovery threads */
 	ceell_discovery_start();
-	printk("CEELL: Discovery started\n");
+	ceell_printk("CEELL: Discovery started\n");
 
 	/* Step 8: Initialize messaging */
 	ret = ceell_messaging_init();
 	if (ret < 0) {
-		printk("CEELL: messaging init failed (%d)\n", ret);
+		ceell_printk("CEELL: messaging init failed (%d)\n", ret);
 		return ret;
 	}
 
-	/* Step 9: Lifecycle loop (never returns) */
+#ifdef CONFIG_CEELL_OTA
+	/* Step 9: Register OTA service + start OTA thread */
+	ceell_service_register("ota", ceell_ota_service_handler);
+
+	ret = ceell_ota_init();
+	if (ret < 0) {
+		ceell_printk("CEELL: OTA init failed (%d)\n", ret);
+		/* Non-fatal: node runs without OTA */
+	} else {
+		ceell_printk("CEELL: OTA initialized\n");
+	}
+#endif
+
+	/* Step 10: Lifecycle loop (never returns) */
 	ceell_lifecycle_run();
 
 	return 0;

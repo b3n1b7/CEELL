@@ -1,1 +1,1 @@
-{"version":1,"node_id":1,"role":"body","name":"ceell-body","ip":"192.168.1.10","netmask":"255.255.255.0","services":"body-control,window-lift"}
+{"version":2,"node_id":1,"role":"body","name":"ceell-body","ip":"192.168.1.10","netmask":"255.255.255.0","services":[{"name":"body-control","priority":1,"deadline_ms":100},{"name":"window-lift","priority":2,"deadline_ms":500}]}

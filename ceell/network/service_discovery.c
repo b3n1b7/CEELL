@@ -1,9 +1,11 @@
+/* REQ-NET-002 */
+
 #include "service_discovery.h"
 #include "discovery.h"
 
 #include <string.h>
+#include <stdbool.h>
 #include <errno.h>
-#include <zephyr/kernel.h>
 
 /**
  * Check if a comma-separated list contains a specific service name.

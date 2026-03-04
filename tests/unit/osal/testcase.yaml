@@ -1,0 +1,4 @@
+tests:
+  ceell.osal:
+    platform_allow: native_sim
+    tags: osal unit

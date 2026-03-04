@@ -30,7 +30,7 @@ jobs:
           tar xf zephyr-sdk-0.17.0_linux-x86_64_minimal.tar.xz -C /opt/
           /opt/zephyr-sdk-0.17.0/setup.sh -t arm-zephyr-eabi -c
 
-      - name: Build single binary
+      - name: Build single binary (no MCUboot — for Renode tests)
         working-directory: ceell-app
         run: |
           west build -b mr_canhubk3 -d build
@@ -51,6 +51,70 @@ jobs:
             ceell-app/config/body_config.bin
             ceell-app/config/chassis_config.bin
             ceell-app/config/lights_config.bin
+
+  build-ota:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/zephyrproject-rtos/ci:v0.27.4
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ceell-app
+
+      - name: Initialize West workspace
+        working-directory: ceell-app
+        run: |
+          west init -l .
+          west update
+
+      - name: Install Zephyr SDK
+        run: |
+          wget -q https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.17.0/zephyr-sdk-0.17.0_linux-x86_64_minimal.tar.xz
+          tar xf zephyr-sdk-0.17.0_linux-x86_64_minimal.tar.xz -C /opt/
+          /opt/zephyr-sdk-0.17.0/setup.sh -t arm-zephyr-eabi -c
+
+      - name: Install imgtool
+        run: pip3 install imgtool
+
+      - name: Build with MCUboot (sysbuild)
+        working-directory: ceell-app
+        run: |
+          west build -b mr_canhubk3 -d build-ota --sysbuild -- \
+            -DCONFIG_CEELL_OTA=y \
+            -Dapp_EXTRA_CONF_FILE=$(pwd)/sysbuild/mcuboot.overlay.conf
+
+      - name: Generate OTA manifest
+        working-directory: ceell-app
+        run: |
+          VERSION=$(grep VERSION_MAJOR VERSION | awk '{print $3}').$(grep VERSION_MINOR VERSION | awk '{print $3}').$(grep PATCHLEVEL VERSION | awk '{print $3}')
+          SIGNED_BIN=build-ota/app/zephyr/zephyr.signed.bin
+          if [ -f "$SIGNED_BIN" ]; then
+            SHA256=$(sha256sum "$SIGNED_BIN" | awk '{print $1}')
+            SIZE=$(stat -c%s "$SIGNED_BIN")
+            cp "$SIGNED_BIN" "build-ota/ceell-${VERSION}.signed.bin"
+            cat > build-ota/latest.json <<EOF
+          {
+            "version": "${VERSION}",
+            "url": "/firmware/ceell-${VERSION}.signed.bin",
+            "sha256": "${SHA256}",
+            "size": ${SIZE}
+          }
+          EOF
+            echo "Generated manifest for v${VERSION} (${SIZE} bytes)"
+          else
+            echo "WARNING: zephyr.signed.bin not found — sysbuild may need adjustment"
+          fi
+
+      - name: Upload OTA artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ceell-ota-build
+          path: |
+            ceell-app/build-ota/latest.json
+            ceell-app/build-ota/ceell-*.signed.bin
+            ceell-app/build-ota/app/zephyr/zephyr.signed.bin
 
   test:
     runs-on: ubuntu-latest
@@ -92,3 +156,81 @@ jobs:
             report.html
             log.html
             robot_output.xml
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/zephyrproject-rtos/ci:v0.27.4
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ceell-app
+
+      - name: Initialize West workspace
+        working-directory: ceell-app
+        run: |
+          west init -l .
+          west update
+
+      - name: Install Zephyr SDK
+        run: |
+          wget -q https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.17.0/zephyr-sdk-0.17.0_linux-x86_64_minimal.tar.xz
+          tar xf zephyr-sdk-0.17.0_linux-x86_64_minimal.tar.xz -C /opt/
+          /opt/zephyr-sdk-0.17.0/setup.sh -t x86_64-zephyr-elf -c
+
+      - name: Install gcovr
+        run: pip3 install gcovr
+
+      - name: Run unit tests with coverage
+        working-directory: ceell-app
+        run: |
+          west twister -T tests/unit/ -p native_sim --inline-logs \
+            --coverage --coverage-tool gcovr
+
+      - name: Check coverage threshold
+        working-directory: ceell-app
+        if: always()
+        run: |
+          COVERAGE_XML=$(find twister-out -name "coverage.xml" -type f 2>/dev/null | head -1)
+          if [ -n "$COVERAGE_XML" ]; then
+            python3 tools/check_coverage.py --threshold 60 "$COVERAGE_XML"
+          else
+            echo "WARNING: No coverage.xml found — skipping threshold check"
+          fi
+
+      - name: Upload unit test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: |
+            ceell-app/twister-out/
+            ceell-app/twister-out/**/handler.log
+            ceell-app/twister-out/**/coverage.xml
+
+  static-analysis:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/zephyrproject-rtos/ci:v0.27.4
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install cppcheck
+        run: |
+          apt-get update -qq && apt-get install -y -qq cppcheck > /dev/null
+
+      - name: Run cppcheck
+        run: |
+          cppcheck \
+            --error-exitcode=1 \
+            --enable=warning,style,performance \
+            --suppress-list=.cppcheck-suppressions \
+            ceell/ src/
+
+      - name: Run OSAL isolation check
+        run: |
+          bash tools/check_osal_isolation.sh

@@ -1,12 +1,13 @@
+/* REQ-NET-001 */ /* REQ-NET-003 */
+/* REQ-SAF-003 */ /* REQ-SAF-004 */ /* REQ-SAF-005 */
+
 #include "discovery.h"
 #include "node_identity.h"
 #include "service_registry.h"
 
 #include <string.h>
-#include <zephyr/kernel.h>
-#include <zephyr/net/socket.h>
-#include <zephyr/net/net_if.h>
-#include <zephyr/data/json.h>
+#include "osal.h"
+#include "osal_json.h"
 
 #define DISCOVERY_TX_STACK_SIZE 2048
 #define DISCOVERY_RX_STACK_SIZE 2048
@@ -18,12 +19,12 @@
 static int sock = -1;
 static struct ceell_peer peers[CONFIG_CEELL_DISCOVERY_MAX_PEERS];
 static int peer_count;
-static struct k_mutex peer_mutex;
+static ceell_mutex_t peer_mutex;
 
-K_THREAD_STACK_DEFINE(ceell_disc_tx_stack, DISCOVERY_TX_STACK_SIZE);
-K_THREAD_STACK_DEFINE(ceell_disc_rx_stack, DISCOVERY_RX_STACK_SIZE);
-static struct k_thread tx_thread_data;
-static struct k_thread rx_thread_data;
+CEELL_THREAD_STACK_DEFINE(ceell_disc_tx_stack, DISCOVERY_TX_STACK_SIZE);
+CEELL_THREAD_STACK_DEFINE(ceell_disc_rx_stack, DISCOVERY_RX_STACK_SIZE);
+static ceell_thread_t tx_thread_data;
+static ceell_thread_t rx_thread_data;
 
 /* JSON descriptors for announcement encode/decode */
 struct discovery_msg {
@@ -51,18 +52,18 @@ static void update_peer(const struct discovery_msg *msg)
 		return;
 	}
 
-	k_mutex_lock(&peer_mutex, K_FOREVER);
+	ceell_mutex_lock(&peer_mutex);
 
 	/* Update existing peer */
 	for (int i = 0; i < peer_count; i++) {
 		if (peers[i].node_id == (uint32_t)msg->node_id) {
-			peers[i].last_seen = k_uptime_get();
+			peers[i].last_seen = ceell_uptime_get();
 			if (msg->services) {
 				strncpy(peers[i].services, msg->services,
 					sizeof(peers[i].services) - 1);
 				peers[i].services[sizeof(peers[i].services) - 1] = '\0';
 			}
-			k_mutex_unlock(&peer_mutex);
+			ceell_mutex_unlock(&peer_mutex);
 			return;
 		}
 	}
@@ -86,14 +87,14 @@ static void update_peer(const struct discovery_msg *msg)
 			strncpy(p->services, msg->services,
 				sizeof(p->services) - 1);
 		}
-		p->last_seen = k_uptime_get();
+		p->last_seen = ceell_uptime_get();
 		peer_count++;
 
-		printk("CEELL_DISCOVERED node_id=%u role=%s name=%s ip=%s services=%s\n",
-		       p->node_id, p->role, p->name, p->ip, p->services);
+		ceell_printk("CEELL_DISCOVERED node_id=%u role=%s name=%s ip=%s services=%s\n",
+			     p->node_id, p->role, p->name, p->ip, p->services);
 	}
 
-	k_mutex_unlock(&peer_mutex);
+	ceell_mutex_unlock(&peer_mutex);
 }
 
 static void tx_thread_fn(void *p1, void *p2, void *p3)
@@ -109,14 +110,14 @@ static void tx_thread_fn(void *p1, void *p2, void *p3)
 	memset(&mcast_addr, 0, sizeof(mcast_addr));
 	mcast_addr.sin_family = AF_INET;
 	mcast_addr.sin_port = htons(CONFIG_CEELL_DISCOVERY_PORT);
-	zsock_inet_pton(AF_INET, CONFIG_CEELL_DISCOVERY_GROUP,
+	ceell_inet_pton(AF_INET, CONFIG_CEELL_DISCOVERY_GROUP,
 			&mcast_addr.sin_addr);
 
 	while (1) {
 		const struct ceell_config *id = ceell_identity_get();
 
 		if (!id) {
-			k_sleep(K_MSEC(CONFIG_CEELL_DISCOVERY_INTERVAL_MS));
+			ceell_sleep(CEELL_MSEC(CONFIG_CEELL_DISCOVERY_INTERVAL_MS));
 			continue;
 		}
 
@@ -134,12 +135,12 @@ static void tx_thread_fn(void *p1, void *p2, void *p3)
 					      ARRAY_SIZE(discovery_msg_descr),
 					      &msg, buf, sizeof(buf));
 		if (ret == 0) {
-			zsock_sendto(sock, buf, strlen(buf), 0,
+			ceell_sendto(sock, buf, strlen(buf), 0,
 				     (struct sockaddr *)&mcast_addr,
 				     sizeof(mcast_addr));
 		}
 
-		k_sleep(K_MSEC(CONFIG_CEELL_DISCOVERY_INTERVAL_MS));
+		ceell_sleep(CEELL_MSEC(CONFIG_CEELL_DISCOVERY_INTERVAL_MS));
 	}
 }
 
@@ -155,7 +156,7 @@ static void rx_thread_fn(void *p1, void *p2, void *p3)
 		struct sockaddr_in src_addr;
 		socklen_t addr_len = sizeof(src_addr);
 
-		int len = zsock_recvfrom(sock, buf, sizeof(buf) - 1, 0,
+		int len = ceell_recvfrom(sock, buf, sizeof(buf) - 1, 0,
 					 (struct sockaddr *)&src_addr,
 					 &addr_len);
 		if (len <= 0) {
@@ -183,18 +184,18 @@ int ceell_discovery_init(void)
 	struct ip_mreqn mreq;
 	int ret;
 
-	k_mutex_init(&peer_mutex);
+	ceell_mutex_init(&peer_mutex);
 
-	sock = zsock_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	sock = ceell_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (sock < 0) {
-		printk("CEELL: discovery socket failed (%d)\n", sock);
+		ceell_printk("CEELL: discovery socket failed (%d)\n", sock);
 		return sock;
 	}
 
 	/* Allow address reuse */
 	int optval = 1;
 
-	zsock_setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+	ceell_setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
 			 &optval, sizeof(optval));
 
 	memset(&bind_addr, 0, sizeof(bind_addr));
@@ -202,56 +203,56 @@ int ceell_discovery_init(void)
 	bind_addr.sin_port = htons(CONFIG_CEELL_DISCOVERY_PORT);
 	bind_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	ret = zsock_bind(sock, (struct sockaddr *)&bind_addr,
+	ret = ceell_bind(sock, (struct sockaddr *)&bind_addr,
 			 sizeof(bind_addr));
 	if (ret < 0) {
-		printk("CEELL: discovery bind failed (%d)\n", ret);
+		ceell_printk("CEELL: discovery bind failed (%d)\n", ret);
 		return ret;
 	}
 
 	/* Join multicast group */
 	memset(&mreq, 0, sizeof(mreq));
-	zsock_inet_pton(AF_INET, CONFIG_CEELL_DISCOVERY_GROUP,
+	ceell_inet_pton(AF_INET, CONFIG_CEELL_DISCOVERY_GROUP,
 			&mreq.imr_multiaddr);
 	mreq.imr_ifindex = 0;
 
-	ret = zsock_setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
+	ret = ceell_setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
 			       &mreq, sizeof(mreq));
 	if (ret < 0) {
-		printk("CEELL: multicast join failed (%d) — continuing anyway\n",
-		       ret);
+		ceell_printk("CEELL: multicast join failed (%d) — continuing anyway\n",
+			     ret);
 		/* Non-fatal: Renode switch may broadcast all packets */
 	}
 
-	printk("CEELL: Discovery initialized on port %d, group %s\n",
-	       CONFIG_CEELL_DISCOVERY_PORT, CONFIG_CEELL_DISCOVERY_GROUP);
+	ceell_printk("CEELL: Discovery initialized on port %d, group %s\n",
+		     CONFIG_CEELL_DISCOVERY_PORT, CONFIG_CEELL_DISCOVERY_GROUP);
 	return 0;
 }
 
 void ceell_discovery_start(void)
 {
-	k_thread_create(&tx_thread_data, ceell_disc_tx_stack,
-			K_THREAD_STACK_SIZEOF(ceell_disc_tx_stack),
-			tx_thread_fn, NULL, NULL, NULL,
-			DISCOVERY_TX_PRIORITY, 0, K_NO_WAIT);
-	k_thread_name_set(&tx_thread_data, "ceell_disc_tx");
+	ceell_thread_create(&tx_thread_data, ceell_disc_tx_stack,
+			    CEELL_THREAD_STACK_SIZEOF(ceell_disc_tx_stack),
+			    tx_thread_fn, NULL, NULL, NULL,
+			    DISCOVERY_TX_PRIORITY);
+	ceell_thread_name_set(&tx_thread_data, "ceell_disc_tx");
 
-	k_thread_create(&rx_thread_data, ceell_disc_rx_stack,
-			K_THREAD_STACK_SIZEOF(ceell_disc_rx_stack),
-			rx_thread_fn, NULL, NULL, NULL,
-			DISCOVERY_RX_PRIORITY, 0, K_NO_WAIT);
-	k_thread_name_set(&rx_thread_data, "ceell_disc_rx");
+	ceell_thread_create(&rx_thread_data, ceell_disc_rx_stack,
+			    CEELL_THREAD_STACK_SIZEOF(ceell_disc_rx_stack),
+			    rx_thread_fn, NULL, NULL, NULL,
+			    DISCOVERY_RX_PRIORITY);
+	ceell_thread_name_set(&rx_thread_data, "ceell_disc_rx");
 
-	printk("CEELL: Discovery threads started\n");
+	ceell_printk("CEELL: Discovery threads started\n");
 }
 
 int ceell_discovery_peer_count(void)
 {
 	int count;
 
-	k_mutex_lock(&peer_mutex, K_FOREVER);
+	ceell_mutex_lock(&peer_mutex);
 	count = peer_count;
-	k_mutex_unlock(&peer_mutex);
+	ceell_mutex_unlock(&peer_mutex);
 	return count;
 }
 
@@ -259,26 +260,26 @@ int ceell_discovery_get_peers(struct ceell_peer *out, int max_peers)
 {
 	int copy;
 
-	k_mutex_lock(&peer_mutex, K_FOREVER);
+	ceell_mutex_lock(&peer_mutex);
 	copy = (peer_count < max_peers) ? peer_count : max_peers;
 	memcpy(out, peers, copy * sizeof(struct ceell_peer));
-	k_mutex_unlock(&peer_mutex);
+	ceell_mutex_unlock(&peer_mutex);
 	return copy;
 }
 
 int ceell_discovery_expire_peers(void)
 {
-	int64_t now = k_uptime_get();
+	int64_t now = ceell_uptime_get();
 	int expired = 0;
 
-	k_mutex_lock(&peer_mutex, K_FOREVER);
+	ceell_mutex_lock(&peer_mutex);
 
 	int i = 0;
 
 	while (i < peer_count) {
 		if ((now - peers[i].last_seen) > CONFIG_CEELL_PEER_TIMEOUT_MS) {
-			printk("CEELL_PEER_EXPIRED node_id=%u name=%s\n",
-			       peers[i].node_id, peers[i].name);
+			ceell_printk("CEELL_PEER_EXPIRED node_id=%u name=%s\n",
+				     peers[i].node_id, peers[i].name);
 			/* Swap with last entry to compact */
 			if (i < peer_count - 1) {
 				peers[i] = peers[peer_count - 1];
@@ -290,10 +291,10 @@ int ceell_discovery_expire_peers(void)
 		}
 	}
 
-	k_mutex_unlock(&peer_mutex);
+	ceell_mutex_unlock(&peer_mutex);
 
 	if (expired > 0) {
-		printk("CEELL: expired %d stale peers\n", expired);
+		ceell_printk("CEELL: expired %d stale peers\n", expired);
 	}
 	return expired;
 }

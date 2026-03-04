@@ -1,0 +1,11 @@
+Checks: '-*,bugprone-*,cert-*,-cert-err33-c'
+WarningsAsErrors: ''
+HeaderFilterRegex: 'ceell/.*\.h'
+FormatStyle: file
+CheckOptions:
+  - key: bugprone-assert-side-effect.AssertMacros
+    value: 'zassert_true,zassert_equal,zassert_not_equal'
+  - key: bugprone-signed-char-misuse.CharTypdesAreUnsignedOnly
+    value: false
+  - key: cert-dcl16-c.NewSuffixes
+    value: 'L;LL;LU;LLU'

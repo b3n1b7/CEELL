@@ -1,0 +1,6 @@
+tests:
+  ceell.health_monitor:
+    platform_allow:
+      - native_sim
+      - native_sim/native/64
+    tags: redundancy unit

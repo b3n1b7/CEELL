@@ -1,1 +1,1 @@
-{"version":1,"node_id":2,"role":"chassis","name":"ceell-chassis","ip":"192.168.1.11","netmask":"255.255.255.0","services":"motor-driver,braking"}
+{"version":2,"node_id":2,"role":"chassis","name":"ceell-chassis","ip":"192.168.1.11","netmask":"255.255.255.0","services":[{"name":"braking","priority":0,"deadline_ms":5},{"name":"traction","priority":0,"deadline_ms":10}]}

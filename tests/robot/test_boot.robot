@@ -1,3 +1,5 @@
+## Traceability: REQ-SAF-001 REQ-SAF-002 REQ-SAF-004 REQ-MSG-004 REQ-NET-001 REQ-OSAL-005
+
 *** Settings ***
 Suite Setup        Setup
 Suite Teardown     Teardown
