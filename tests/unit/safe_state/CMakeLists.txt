@@ -5,6 +5,8 @@ project(test_safe_state)
 target_sources(app PRIVATE
   src/main.c
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../ceell/core/safe_state.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../ceell/osal/zephyr/osal_sync.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../ceell/osal/zephyr/osal_atomic.c
 )
 
 target_include_directories(app PRIVATE

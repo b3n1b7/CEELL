@@ -5,6 +5,7 @@ project(test_msg_deadline)
 target_sources(app PRIVATE
   src/main.c
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../ceell/network/msg_deadline.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../ceell/osal/zephyr/osal_time.c
 )
 
 target_include_directories(app PRIVATE

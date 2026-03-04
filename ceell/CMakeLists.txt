@@ -1,5 +1,3 @@
-zephyr_library_named(ceell)
-
 add_subdirectory(osal)
 add_subdirectory(core)
 add_subdirectory(network)

@@ -5,6 +5,8 @@ project(test_health_monitor)
 target_sources(app PRIVATE
   src/main.c
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../ceell/core/health_monitor.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../ceell/osal/zephyr/osal_sync.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../ceell/osal/zephyr/osal_time.c
 )
 
 target_include_directories(app PRIVATE

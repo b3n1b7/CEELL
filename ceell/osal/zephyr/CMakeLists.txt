@@ -1,3 +1,5 @@
+zephyr_library()
+
 zephyr_library_sources(
   osal_thread.c
   osal_sync.c

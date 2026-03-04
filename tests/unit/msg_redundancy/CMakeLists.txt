@@ -5,6 +5,8 @@ project(test_msg_redundancy)
 target_sources(app PRIVATE
   src/main.c
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../ceell/network/msg_redundancy.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../ceell/osal/zephyr/osal_sync.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../ceell/osal/zephyr/osal_socket.c
 )
 
 target_include_directories(app PRIVATE
