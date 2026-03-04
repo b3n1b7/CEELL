@@ -7,7 +7,7 @@
 #ifndef CEELL_OSAL_VERSION_H
 #define CEELL_OSAL_VERSION_H
 
-#if defined(CONFIG_ZEPHYR)
+#if defined(__ZEPHYR__)
 #include <zephyr/app_version.h>
 
 #define CEELL_APP_VERSION_MAJOR APP_VERSION_MAJOR

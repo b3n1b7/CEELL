@@ -7,14 +7,14 @@
 
 #include <stdint.h>
 
-#if defined(CONFIG_ZEPHYR)
+#if defined(__ZEPHYR__)
 #include <zephyr/sys/atomic.h>
 
 typedef atomic_t ceell_atomic_t;
 
 #define CEELL_ATOMIC_INIT(val) ATOMIC_INIT(val)
 
-#endif /* CONFIG_ZEPHYR */
+#endif /* __ZEPHYR__ */
 
 /**
  * Atomically set a value.

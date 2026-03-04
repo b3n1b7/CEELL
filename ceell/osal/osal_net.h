@@ -8,7 +8,7 @@
 #ifndef CEELL_OSAL_NET_H
 #define CEELL_OSAL_NET_H
 
-#if defined(CONFIG_ZEPHYR)
+#if defined(__ZEPHYR__)
 #include <zephyr/net/net_if.h>
 #include <zephyr/net/net_ip.h>
 #endif

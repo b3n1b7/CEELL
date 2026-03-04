@@ -1,5 +1,6 @@
 #include "net_setup.h"
 
+#include <errno.h>
 #include "osal_log.h"
 #include "osal_net.h"
 

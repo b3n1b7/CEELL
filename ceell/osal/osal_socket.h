@@ -13,7 +13,7 @@
 #include <stddef.h>
 
 /* Platform-specific includes for socket types and constants */
-#if defined(CONFIG_ZEPHYR)
+#if defined(__ZEPHYR__)
 #include <zephyr/net/socket.h>
 
 /* Socket types and constants are already defined by Zephyr's socket.h:
@@ -22,7 +22,7 @@
  * struct sockaddr, struct sockaddr_in, struct ip_mreqn, socklen_t, etc.
  */
 
-#endif /* CONFIG_ZEPHYR */
+#endif /* __ZEPHYR__ */
 
 /**
  * Create a socket.

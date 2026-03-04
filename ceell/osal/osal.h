@@ -12,10 +12,10 @@
 #define CEELL_OSAL_H
 
 /* Platform detection */
-#if defined(CONFIG_ZEPHYR)
+#if defined(__ZEPHYR__)
 #define CEELL_OSAL_ZEPHYR 1
 #else
-#error "No OSAL backend selected. Define CONFIG_ZEPHYR or add a new backend."
+#error "No OSAL backend selected. Build with Zephyr or add a new backend."
 #endif
 
 /* Common utility macros */

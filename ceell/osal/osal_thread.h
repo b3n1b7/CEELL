@@ -9,7 +9,7 @@
 #include <stdint.h>
 
 /* Platform-specific type definitions */
-#if defined(CONFIG_ZEPHYR)
+#if defined(__ZEPHYR__)
 #include <zephyr/kernel.h>
 
 typedef struct k_thread ceell_thread_t;
@@ -20,7 +20,7 @@ typedef struct k_thread ceell_thread_t;
 #define CEELL_THREAD_STACK_SIZEOF(stack) \
 	K_THREAD_STACK_SIZEOF(stack)
 
-#endif /* CONFIG_ZEPHYR */
+#endif /* __ZEPHYR__ */
 
 /** Thread entry function signature */
 typedef void (*ceell_thread_entry_t)(void *p1, void *p2, void *p3);

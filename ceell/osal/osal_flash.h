@@ -10,14 +10,14 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#if defined(CONFIG_ZEPHYR)
+#if defined(__ZEPHYR__)
 #include <zephyr/storage/flash_map.h>
 
 typedef const struct flash_area ceell_flash_area_t;
 
 #define CEELL_FIXED_PARTITION_ID(label) FIXED_PARTITION_ID(label)
 
-#endif /* CONFIG_ZEPHYR */
+#endif /* __ZEPHYR__ */
 
 /**
  * Open a flash area by partition ID.

@@ -12,12 +12,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#if defined(CONFIG_ZEPHYR)
+#if defined(__ZEPHYR__)
 #include <zephyr/storage/stream_flash.h>
 
 typedef struct stream_flash_ctx ceell_stream_flash_ctx_t;
 
-#endif /* CONFIG_ZEPHYR */
+#endif /* __ZEPHYR__ */
 
 /**
  * Initialize a stream flash context for buffered writes.

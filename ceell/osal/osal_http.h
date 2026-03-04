@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#if defined(CONFIG_ZEPHYR)
+#if defined(__ZEPHYR__)
 #include <zephyr/net/http/client.h>
 
 /* Re-export Zephyr HTTP types for use by OTA client */
@@ -26,7 +26,7 @@ typedef void (*ceell_http_response_cb_t)(struct http_response *rsp,
 					 enum http_final_call final_data,
 					 void *user_data);
 
-#endif /* CONFIG_ZEPHYR */
+#endif /* __ZEPHYR__ */
 
 /**
  * Perform an HTTP request on an already-connected socket.

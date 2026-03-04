@@ -1,3 +1,3 @@
-if(CONFIG_ZEPHYR)
+if(ZEPHYR_BASE)
   add_subdirectory(zephyr)
 endif()

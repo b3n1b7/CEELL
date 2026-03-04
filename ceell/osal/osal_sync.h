@@ -11,14 +11,14 @@
 #include "osal_time.h"
 
 /* Platform-specific type definitions */
-#if defined(CONFIG_ZEPHYR)
+#if defined(__ZEPHYR__)
 #include <zephyr/kernel.h>
 
 typedef struct k_mutex ceell_mutex_t;
 typedef struct k_sem   ceell_sem_t;
 typedef struct k_msgq  ceell_msgq_t;
 
-#endif /* CONFIG_ZEPHYR */
+#endif /* __ZEPHYR__ */
 
 /* ── Mutex ─────────────────────────────────────────────────────── */
 

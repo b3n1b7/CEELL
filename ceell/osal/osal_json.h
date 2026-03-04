@@ -8,7 +8,7 @@
 #ifndef CEELL_OSAL_JSON_H
 #define CEELL_OSAL_JSON_H
 
-#if defined(CONFIG_ZEPHYR)
+#if defined(__ZEPHYR__)
 #include <zephyr/data/json.h>
 #endif
 

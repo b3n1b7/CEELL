@@ -8,7 +8,7 @@
 #ifndef CEELL_OSAL_LOG_H
 #define CEELL_OSAL_LOG_H
 
-#if defined(CONFIG_ZEPHYR)
+#if defined(__ZEPHYR__)
 #include <zephyr/logging/log.h>
 #include <zephyr/kernel.h>  /* for printk */
 
@@ -30,6 +30,6 @@
 
 #define ceell_printk printk
 
-#endif /* CONFIG_ZEPHYR */
+#endif /* __ZEPHYR__ */
 
 #endif /* CEELL_OSAL_LOG_H */

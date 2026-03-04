@@ -9,7 +9,7 @@
 #include <stdint.h>
 
 /* Platform-specific timeout type and macros */
-#if defined(CONFIG_ZEPHYR)
+#if defined(__ZEPHYR__)
 #include <zephyr/kernel.h>
 
 typedef k_timeout_t ceell_timeout_t;
@@ -19,7 +19,7 @@ typedef k_timeout_t ceell_timeout_t;
 #define CEELL_FOREVER      K_FOREVER
 #define CEELL_NO_WAIT      K_NO_WAIT
 
-#endif /* CONFIG_ZEPHYR */
+#endif /* __ZEPHYR__ */
 
 /**
  * Get system uptime in milliseconds.
