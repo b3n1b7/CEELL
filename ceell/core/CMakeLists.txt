@@ -1,4 +1,4 @@
-target_sources(ceell PRIVATE
+zephyr_library_sources(
   config_parser.c
   net_setup.c
   node_identity.c
@@ -9,13 +9,13 @@ target_sources(ceell PRIVATE
 )
 
 if(CONFIG_CEELL_TIMING)
-  target_sources(ceell PRIVATE timing.c)
+  zephyr_library_sources(timing.c)
 endif()
 
 if(CONFIG_CEELL_TIMING_BUDGETS)
-  target_sources(ceell PRIVATE timing_budget.c)
+  zephyr_library_sources(timing_budget.c)
 endif()
 
 if(CONFIG_CEELL_WATCHDOG)
-  target_sources(ceell PRIVATE watchdog.c)
+  zephyr_library_sources(watchdog.c)
 endif()

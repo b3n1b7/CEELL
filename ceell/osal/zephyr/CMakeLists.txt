@@ -1,4 +1,4 @@
-target_sources(ceell PRIVATE
+zephyr_library_sources(
   osal_thread.c
   osal_sync.c
   osal_time.c
@@ -10,7 +10,7 @@ target_sources(ceell PRIVATE
 
 # OTA-specific OSAL wrappers (only when OTA is enabled)
 if(CONFIG_CEELL_OTA)
-  target_sources(ceell PRIVATE
+  zephyr_library_sources(
     osal_dfu.c
     osal_http.c
     osal_stream_flash.c
