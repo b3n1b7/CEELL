@@ -1,9 +1,7 @@
 if(CONFIG_CEELL_OTA)
-  zephyr_library()
-
-  zephyr_library_sources(
-    ota_client.c
-    ota_state.c
-    ota_version.c
+  target_sources(app PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/ota_client.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/ota_state.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/ota_version.c
   )
 endif()
