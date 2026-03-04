@@ -18,13 +18,9 @@
 #error "No OSAL backend selected. Build with Zephyr or add a new backend."
 #endif
 
-/* Common utility macros */
+/* Common utility macros (only define if not already provided by RTOS) */
 #ifndef ARG_UNUSED
 #define ARG_UNUSED(x) (void)(x)
-#endif
-
-#ifndef ARRAY_SIZE
-#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 #endif
 
 /* Include all OSAL sub-headers */

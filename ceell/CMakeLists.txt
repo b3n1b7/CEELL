@@ -1,4 +1,4 @@
-add_library(ceell STATIC)
+zephyr_library_named(ceell)
 
 add_subdirectory(osal)
 add_subdirectory(core)
@@ -7,11 +7,9 @@ if(CONFIG_CEELL_OTA)
   add_subdirectory(ota)
 endif()
 
-target_include_directories(ceell PUBLIC
+zephyr_include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/osal
   ${CMAKE_CURRENT_SOURCE_DIR}/core
   ${CMAKE_CURRENT_SOURCE_DIR}/network
   ${CMAKE_CURRENT_SOURCE_DIR}/ota
 )
-
-target_link_libraries(ceell PUBLIC zephyr_interface)
