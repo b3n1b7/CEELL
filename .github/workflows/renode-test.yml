@@ -82,14 +82,13 @@ jobs:
         working-directory: ceell-app
         run: |
           west build -b mr_canhubk3 -d build-ota --sysbuild -- \
-            -DCONFIG_CEELL_OTA=y \
-            -Dapp_EXTRA_CONF_FILE=$(pwd)/sysbuild/mcuboot.overlay.conf
+            -Dceell-app_CONFIG_CEELL_OTA=y
 
       - name: Generate OTA manifest
         working-directory: ceell-app
         run: |
           VERSION=$(grep VERSION_MAJOR VERSION | awk '{print $3}').$(grep VERSION_MINOR VERSION | awk '{print $3}').$(grep PATCHLEVEL VERSION | awk '{print $3}')
-          SIGNED_BIN=build-ota/app/zephyr/zephyr.signed.bin
+          SIGNED_BIN=build-ota/ceell-app/zephyr/zephyr.signed.bin
           if [ -f "$SIGNED_BIN" ]; then
             SHA256=$(sha256sum "$SIGNED_BIN" | awk '{print $1}')
             SIZE=$(stat -c%s "$SIGNED_BIN")
@@ -104,7 +103,10 @@ jobs:
           EOF
             echo "Generated manifest for v${VERSION} (${SIZE} bytes)"
           else
-            echo "WARNING: zephyr.signed.bin not found — sysbuild may need adjustment"
+            echo "WARNING: zephyr.signed.bin not found at $SIGNED_BIN"
+            echo "Build output contents:"
+            find build-ota -name "*.signed.*" -o -name "*.bin" 2>/dev/null | head -20
+            exit 1
           fi
 
       - name: Upload OTA artifacts
@@ -114,7 +116,7 @@ jobs:
           path: |
             ceell-app/build-ota/latest.json
             ceell-app/build-ota/ceell-*.signed.bin
-            ceell-app/build-ota/app/zephyr/zephyr.signed.bin
+            ceell-app/build-ota/ceell-app/zephyr/zephyr.signed.bin
 
   test:
     runs-on: ubuntu-latest
@@ -193,11 +195,16 @@ jobs:
         working-directory: ceell-app
         if: always()
         run: |
-          COVERAGE_XML=$(find twister-out -name "coverage.xml" -type f 2>/dev/null | head -1)
-          if [ -n "$COVERAGE_XML" ]; then
+          COVERAGE_XML=$(find twister-out -name "coverage*.xml" -type f 2>/dev/null | head -1)
+          if [ -z "$COVERAGE_XML" ]; then
+            echo "Generating coverage XML from gcov data..."
+            gcovr -r . --xml-pretty -o twister-out/coverage.xml twister-out/ 2>/dev/null || true
+            COVERAGE_XML="twister-out/coverage.xml"
+          fi
+          if [ -f "$COVERAGE_XML" ]; then
             python3 tools/check_coverage.py --threshold 60 "$COVERAGE_XML"
           else
-            echo "WARNING: No coverage.xml found — skipping threshold check"
+            echo "WARNING: Coverage XML could not be generated — skipping threshold check"
           fi
 
       - name: Upload unit test results
