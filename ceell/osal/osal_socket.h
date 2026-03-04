@@ -4,7 +4,7 @@
  * Wraps BSD-style socket operations. On Zephyr, wraps the zsock_* API.
  * On POSIX systems, these map to standard socket calls.
  *
- * /* REQ-OSAL-005 */ Socket abstraction API
+ * REQ-OSAL-005 — Socket abstraction API
  */
 
 #ifndef CEELL_OSAL_SOCKET_H

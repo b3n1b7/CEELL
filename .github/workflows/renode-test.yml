@@ -228,7 +228,7 @@ jobs:
           cppcheck \
             --error-exitcode=1 \
             --enable=warning,style,performance \
-            --suppress-list=.cppcheck-suppressions \
+            --suppressions-list=.cppcheck-suppressions \
             ceell/ src/
 
       - name: Run OSAL isolation check

@@ -7,6 +7,11 @@ target_sources(app PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../ceell/ota/ota_state.c
 )
 
+target_sources(app PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../ceell/osal/zephyr/osal_atomic.c
+)
+
 target_include_directories(app PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../ceell/osal
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../ceell/ota
 )

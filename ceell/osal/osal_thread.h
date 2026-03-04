@@ -1,6 +1,6 @@
 /*
  * CEELL OSAL — Threading
- * /* REQ-OSAL-002 */ Thread abstraction API
+ * REQ-OSAL-002 — Thread abstraction API
  */
 
 #ifndef CEELL_OSAL_THREAD_H

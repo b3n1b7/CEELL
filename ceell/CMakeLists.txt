@@ -3,7 +3,9 @@ add_library(ceell STATIC)
 add_subdirectory(osal)
 add_subdirectory(core)
 add_subdirectory(network)
-add_subdirectory(ota)
+if(CONFIG_CEELL_OTA)
+  add_subdirectory(ota)
+endif()
 
 target_include_directories(ceell PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/osal

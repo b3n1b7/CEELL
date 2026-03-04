@@ -4,8 +4,8 @@
  * Tests each OSAL primitive on native_sim to verify the abstraction
  * layer correctly wraps the underlying RTOS.
  *
- * /* REQ-OSAL-002 */ /* REQ-OSAL-003 */ /* REQ-OSAL-004 */
- * /* REQ-SAF-005 */
+ * REQ-OSAL-002, REQ-OSAL-003, REQ-OSAL-004
+ * REQ-SAF-005
  */
 
 #include <zephyr/ztest.h>

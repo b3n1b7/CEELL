@@ -1,6 +1,6 @@
 /*
  * CEELL OSAL — Synchronization (mutex, semaphore, message queue)
- * /* REQ-OSAL-003 */ Synchronization abstraction API
+ * REQ-OSAL-003 — Synchronization abstraction API
  */
 
 #ifndef CEELL_OSAL_SYNC_H

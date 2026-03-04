@@ -1,6 +1,6 @@
 /*
  * CEELL OSAL — Time (uptime, sleep, cycle counter, timeout type)
- * /* REQ-OSAL-004 */ Time abstraction API
+ * REQ-OSAL-004 — Time abstraction API
  */
 
 #ifndef CEELL_OSAL_TIME_H

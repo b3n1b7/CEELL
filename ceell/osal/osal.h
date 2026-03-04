@@ -5,7 +5,7 @@
  * instead of RTOS-specific headers. This enables portability to
  * SafeRTOS, QNX, or any future certified RTOS.
  *
- * /* REQ-OSAL-001 */ OSAL isolation boundary
+ * REQ-OSAL-001 — OSAL isolation boundary
  */
 
 #ifndef CEELL_OSAL_H
