@@ -14,6 +14,10 @@ manifest:
           - picolibc
           - mbedtls
           - zcbor
+    - name: mcuboot
+      remote: zephyrproject-rtos
+      revision: 346f7374ff4467e40b5594658f8ac67a5e9813c9
+      path: bootloader/mcuboot
 
   self:
     path: ceell-app
