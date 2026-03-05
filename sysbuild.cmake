@@ -9,8 +9,11 @@ set(mcuboot_EXTRA_DTC_OVERLAY_FILE ${mcuboot_EXTRA_DTC_OVERLAY_FILE}
 
 # Pass MCUboot flash partitions to the app image.
 # This overlay adds boot/slot0/slot1/scratch on top of the base board overlay.
-set(ceell-app_EXTRA_DTC_OVERLAY_FILE
-    ${APP_DIR}/sysbuild/ceell-app.overlay
+# Must APPEND, not SET, to preserve auto-detected boards/mr_canhubk3.overlay.
+list(APPEND ceell-app_EXTRA_DTC_OVERLAY_FILE
+     ${APP_DIR}/sysbuild/ceell-app.overlay
+)
+set(ceell-app_EXTRA_DTC_OVERLAY_FILE ${ceell-app_EXTRA_DTC_OVERLAY_FILE}
     CACHE INTERNAL "" FORCE
 )
 
