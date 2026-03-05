@@ -7,4 +7,11 @@ set(mcuboot_EXTRA_DTC_OVERLAY_FILE ${mcuboot_EXTRA_DTC_OVERLAY_FILE}
     CACHE INTERNAL "" FORCE
 )
 
+# Pass MCUboot flash partitions to the app image.
+# This overlay adds boot/slot0/slot1/scratch on top of the base board overlay.
+set(ceell-app_EXTRA_DTC_OVERLAY_FILE
+    ${APP_DIR}/sysbuild/ceell-app.overlay
+    CACHE INTERNAL "" FORCE
+)
+
 # App-side OTA/MCUboot Kconfig is auto-detected from sysbuild/ceell-app.conf

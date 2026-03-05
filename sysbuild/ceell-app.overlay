@@ -1,0 +1,58 @@
+/* MCUboot flash layout for CEELL app image (sysbuild only)
+ *
+ * Applied on top of boards/mr_canhubk3.overlay.
+ * Adds MCUboot partitions to internal flash and replaces the
+ * large QSPI storage with slot1 + scratch + smaller storage.
+ */
+
+/* --- Internal flash: add MCUboot + slot0, replace code_partition --- */
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		/* Delete the default code_partition from base DTS */
+		/delete-node/ partition@100;
+
+		boot_partition: partition@100 {
+			label = "mcuboot";
+			reg = <0x100 0x20000>;
+		};
+
+		slot0_partition: partition@20100 {
+			label = "image-0";
+			reg = <0x20100 0x80000>;
+		};
+	};
+};
+
+/* --- External QSPI: replace storage with slot1 + scratch + storage --- */
+&mx25l6433f {
+	partitions {
+		/* Delete the large storage_partition from base overlay */
+		/delete-node/ partition@10000;
+
+		slot1_partition: partition@10000 {
+			label = "image-1";
+			reg = <0x10000 0x80000>;
+		};
+
+		scratch_partition: partition@90000 {
+			label = "image-scratch";
+			reg = <0x90000 0x10000>;
+		};
+
+		storage_partition: partition@a0000 {
+			label = "storage";
+			reg = <0xA0000 0x10000>;
+		};
+	};
+};
+
+/* Point code-partition to slot0 for MCUboot chain boot */
+/ {
+	chosen {
+		zephyr,code-partition = &slot0_partition;
+	};
+};
