@@ -7,10 +7,4 @@ set(mcuboot_EXTRA_DTC_OVERLAY_FILE ${mcuboot_EXTRA_DTC_OVERLAY_FILE}
     CACHE INTERNAL "" FORCE
 )
 
-# Merge OTA/MCUboot app-side Kconfig into the main app image
-list(APPEND ${ZCMAKE_APPLICATION}_EXTRA_CONF_FILE
-     ${APP_DIR}/sysbuild/mcuboot.overlay.conf
-)
-set(${ZCMAKE_APPLICATION}_EXTRA_CONF_FILE ${${ZCMAKE_APPLICATION}_EXTRA_CONF_FILE}
-    CACHE INTERNAL "" FORCE
-)
+# App-side OTA/MCUboot Kconfig is auto-detected from sysbuild/ceell-app.conf
