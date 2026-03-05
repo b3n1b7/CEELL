@@ -69,12 +69,6 @@ jobs:
           west init -l .
           west update
 
-      - name: Verify west workspace
-        working-directory: ceell-app
-        run: |
-          west list
-          ls -la ../bootloader/mcuboot/boot/zephyr/ || echo "MCUboot not found!"
-
       - name: Install Zephyr SDK
         run: |
           wget -q https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.17.0/zephyr-sdk-0.17.0_linux-x86_64_minimal.tar.xz
