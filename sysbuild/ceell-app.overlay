@@ -27,10 +27,13 @@
 	};
 };
 
-/* --- External QSPI: replace storage with slot1 + scratch + storage --- */
+/* --- External QSPI: add slot1 + scratch after config_partition --- */
 &mx25l6433f {
 	partitions {
-		/* Delete the large storage_partition from base overlay */
+		/* Delete the large storage_partition from base overlay to
+		 * free space for OTA partitions. Note: we cannot re-add
+		 * storage_partition here due to DTS label conflict with
+		 * the base overlay, but OTA builds don't need it. */
 		/delete-node/ partition@10000;
 
 		slot1_partition: partition@10000 {
@@ -41,11 +44,6 @@
 		scratch_partition: partition@90000 {
 			label = "image-scratch";
 			reg = <0x90000 0x10000>;
-		};
-
-		storage_partition: partition@a0000 {
-			label = "storage";
-			reg = <0xA0000 0x10000>;
 		};
 	};
 };
