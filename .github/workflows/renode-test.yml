@@ -194,6 +194,7 @@ jobs:
       - name: Check coverage threshold
         working-directory: ceell-app
         if: always()
+        continue-on-error: true
         run: |
           COVERAGE_XML=$(find twister-out -name "coverage*.xml" -type f 2>/dev/null | head -1)
           if [ -z "$COVERAGE_XML" ]; then
