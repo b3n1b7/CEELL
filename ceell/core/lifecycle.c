@@ -4,6 +4,7 @@
 #include "node_identity.h"
 #include "discovery.h"
 #include "health_monitor.h"
+#include "timing.h"
 #ifdef CONFIG_CEELL_WATCHDOG
 #include "watchdog.h"
 #endif
@@ -15,6 +16,7 @@
 #include "osal.h"
 
 #define LIFECYCLE_INTERVAL_SEC 5
+#define LIFECYCLE_STATS_INTERVAL 6
 
 void ceell_lifecycle_run(void)
 {
@@ -22,6 +24,7 @@ void ceell_lifecycle_run(void)
 #ifdef CONFIG_CEELL_TEST_ECHO_SERVICE
 	bool echo_tested = false;
 #endif
+	static int tick_count;
 
 	if (!id) {
 		ceell_printk("CEELL: lifecycle — identity not set\n");
@@ -29,11 +32,20 @@ void ceell_lifecycle_run(void)
 	}
 
 	while (1) {
+		uint32_t th;
+
+		ceell_timing_start("lifecycle_tick", &th);
 		ceell_discovery_expire_peers();
 		ceell_health_update();
+		ceell_timing_stop("lifecycle_tick", th);
+
 #ifdef CONFIG_CEELL_WATCHDOG
 		ceell_watchdog_feed();
 #endif
+
+		if (++tick_count % LIFECYCLE_STATS_INTERVAL == 0) {
+			ceell_timing_print_stats();
+		}
 
 		int peers = ceell_discovery_peer_count();
 

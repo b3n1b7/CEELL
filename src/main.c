@@ -10,6 +10,9 @@
 #include "discovery.h"
 #include "messaging.h"
 #include "lifecycle.h"
+#include "health_monitor.h"
+#include "safe_state.h"
+#include "timing.h"
 
 #ifdef CONFIG_CEELL_OTA
 #include "ota_client.h"
@@ -24,6 +27,20 @@ static int echo_handler(const char *payload, char *rsp_payload, size_t rsp_len)
 }
 #endif
 
+static void on_health_change(uint32_t node_id, int old_state, int new_state)
+{
+	ceell_printk("CEELL: Peer %u health: %d -> %d\n",
+		     node_id, old_state, new_state);
+
+	if (new_state == CEELL_HEALTH_LOST) {
+		ceell_safe_state_trigger(CEELL_SAFE_CRITICAL_PEER_LOST);
+		ceell_printk("CEELL: SAFE STATE TRIGGERED peer=%u\n", node_id);
+	} else if (old_state == CEELL_HEALTH_LOST &&
+		   new_state == CEELL_HEALTH_HEALTHY) {
+		ceell_safe_state_clear();
+		ceell_printk("CEELL: SAFE STATE CLEARED peer=%u\n", node_id);
+	}
+}
 
 int main(void)
 {
@@ -79,6 +96,27 @@ int main(void)
 #ifdef CONFIG_CEELL_TEST_ECHO_SERVICE
 	ceell_service_register("echo", echo_handler);
 #endif
+
+	/* Step 5b: Initialize timing subsystem */
+	ceell_timing_init();
+	ceell_printk("CEELL: Timing subsystem initialized\n");
+
+	/* Step 5c: Initialize health monitor */
+	ret = ceell_health_init();
+	if (ret < 0) {
+		ceell_printk("CEELL: health init failed (%d)\n", ret);
+	} else {
+		ceell_health_register_cb(on_health_change);
+		ceell_printk("CEELL: Health monitor initialized\n");
+	}
+
+	/* Step 5d: Initialize safe state manager */
+	ret = ceell_safe_state_init();
+	if (ret < 0) {
+		ceell_printk("CEELL: safe state init failed (%d)\n", ret);
+	} else {
+		ceell_printk("CEELL: Safe state manager initialized\n");
+	}
 
 	/* Step 6: Initialize discovery */
 	ret = ceell_discovery_init();

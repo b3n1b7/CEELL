@@ -149,6 +149,12 @@ jobs:
       - name: Run Services Test
         run: renode-test tests/robot/test_services.robot
 
+      - name: Run Fault Injection Test
+        run: renode-test tests/robot/test_fault_injection.robot
+
+      - name: Run Timing Test
+        run: renode-test tests/robot/test_timing.robot
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4

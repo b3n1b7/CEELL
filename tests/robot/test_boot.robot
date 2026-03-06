@@ -25,6 +25,8 @@ CEELL Boots And Loads Flash Config
     Wait For Line On Uart    Identity set
     Wait For Line On Uart    Service registry initialized
     Wait For Line On Uart    CEELL_SERVICE_REGISTERED
+    Wait For Line On Uart    Timing subsystem initialized
+    Wait For Line On Uart    Health monitor initialized
     Wait For Line On Uart    Discovery initialized
     Wait For Line On Uart    Discovery threads started
     Wait For Line On Uart    Messaging initialized
